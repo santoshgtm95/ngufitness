@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NGU Fitness Membership Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=2.0">
+</head>
+
+<body>
+  <div class="app-container">
+    <!-- Left Sidebar - Navigation -->
+    <aside class="nav-sidebar">
+      <div class="nav-logo">
+        <span class="nav-logo-icon">🏋️</span>
+        <span class="nav-logo-text">GymFlow</span>
+      </div>
+      <nav class="nav-menu">
+        <div class="nav-item active">
+          <span class="nav-item-icon">📊</span>
+          <span class="nav-item-text">Dashboard</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-item-icon">👥</span>
+          <span class="nav-item-text">Customers</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-item-icon">🎫</span>
+          <span class="nav-item-text">Memberships</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-item-icon">📈</span>
+          <span class="nav-item-text">Reports</span>
+        </div>
+        <div class="nav-item">
+          <span class="nav-item-icon">⚙️</span>
+          <span class="nav-item-text">Settings</span>
+        </div>
+      </nav>
+      <div class="nav-footer">
+        <p>v1.0.0</p>
+        <p>© 2025 NGU Fitness</p>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-content">
+          <img src="logo.png" alt="NGU Fitness Logo" class="header-logo">
+          <div>
+            <h1>Membership Management</h1>
+            <p>Manage your gym members and track memberships efficiently</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Action Bar -->
+      <div class="action-bar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search by name, phone, or address...">
+        </div>
+        <div class="action-buttons">
+          <button class="btn btn-secondary" onclick="app.showAddCustomerModal()">
+            <span>👤</span> Add Customer
+          </button>
+          <button class="btn btn-primary" onclick="app.showAddMembershipModal()">
+            <span>✨</span> Register Membership
+          </button>
+        </div>
+      </div>
+
+      <!-- Customer Table -->
+      <div class="table-container">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Membership Status</th>
+                <th>Package</th>
+                <th>Expires On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="customerTableBody">
+              <!-- Customer rows will be dynamically inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar - Expiration Alerts -->
+    <aside class="alerts-sidebar">
+      <div class="alerts-sidebar-header">
+        <span class="alert-icon">⚠️</span>
+        <h2>Expiring Soon</h2>
+      </div>
+      <div id="alertList" class="alert-list">
+        <!-- Alerts will be dynamically inserted here -->
+      </div>
+    </aside>
+  </div>
+
+  <!-- Add/Edit Customer Modal -->
+  <div id="customerModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="customerModalTitle">Add Customer</h2>
+        <button class="modal-close" onclick="app.closeCustomerModal()">✕</button>
+      </div>
+      <form id="customerForm">
+        <input type="hidden" id="customerId">
+        <div class="form-group">
+          <label for="customerName">Name *</label>
+          <input type="text" id="customerName" required placeholder="Enter customer name">
+        </div>
+        <div class="form-group">
+          <label for="customerPhone">Phone Number *</label>
+          <input type="tel" id="customerPhone" required placeholder="Enter phone number" maxlength="12">
+        </div>
+        <div class="form-group">
+          <label for="customerAddress">Address *</label>
+          <textarea id="customerAddress" required placeholder="Enter address"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="app.closeCustomerModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Customer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add/Edit Membership Modal -->
+  <div id="membershipModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="membershipModalTitle">Register Membership</h2>
+        <button class="modal-close" onclick="app.closeMembershipModal()">✕</button>
+      </div>
+      <form id="membershipForm">
+        <input type="hidden" id="membershipCustomerId">
+        <div class="form-group">
+          <label for="membershipCustomerSelect">Select Customer *</label>
+          <select id="membershipCustomerSelect" required>
+            <option value="">-- Select a customer --</option>
+            <!-- Customer options will be dynamically inserted here -->
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="membershipStartDate">Start Date *</label>
+            <input type="date" id="membershipStartDate" required>
+          </div>
+          <div class="form-group">
+            <label for="membershipPackage">Package Type *</label>
+            <select id="membershipPackage" required>
+              <option value="">-- Select package --</option>
+              <option value="1day">1 Day</option>
+              <option value="15days">15 Days</option>
+              <option value="1month">1 Month</option>
+              <option value="6months">6 Months</option>
+              <option value="1year">1 Year</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="membershipExpireDate">Expiration Date</label>
+          <input type="date" id="membershipExpireDate" readonly
+            style="background: var(--bg-secondary); cursor: not-allowed;">
+          <small class="text-muted">Auto-calculated based on package type</small>
+        </div>
+        <div class="form-group">
+          <label for="membershipPayment">Payment Amount *</label>
+          <input type="number" id="membershipPayment" required placeholder="Enter payment amount" min="0" step="0.01">
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="app.closeMembershipModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Membership</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Backup Button -->
+  <button class="btn-backup" onclick="app.downloadBackup()" title="Download Database Backup">
+    <span>💾</span>
+  </button>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
