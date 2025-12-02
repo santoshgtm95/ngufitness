@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const customersRouter = require('./routes/customers');
 const membershipsRouter = require('./routes/memberships');
+const reportsRouter = require('./routes/reports');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
@@ -24,6 +25,9 @@ app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
     next();
 });
+
+// Serve static files from parent directory
+app.use(express.static(path.join(__dirname, '..')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -142,6 +146,7 @@ app.get('/api/backup', (req, res) => {
 // API Routes
 app.use('/api/customers', customersRouter);
 app.use('/api/memberships', membershipsRouter);
+app.use('/api/reports', reportsRouter);
 
 // 404 handler
 app.use((req, res) => {

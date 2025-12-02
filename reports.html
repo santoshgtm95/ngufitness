@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - NGU Fitness</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="reports.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar - Navigation -->
+        <aside class="nav-sidebar">
+            <div class="nav-logo">
+                <span class="nav-logo-icon">🏋️</span>
+                <span class="nav-logo-text">GymFlow</span>
+            </div>
+            <nav class="nav-menu">
+                <div class="nav-item" onclick="window.location.href='index.html'">
+                    <span class="nav-item-icon">📊</span>
+                    <span class="nav-item-text">Dashboard</span>
+                </div>
+                <div class="nav-item">
+                    <span class="nav-item-icon">👥</span>
+                    <span class="nav-item-text">Customers</span>
+                </div>
+                <div class="nav-item active">
+                    <span class="nav-item-icon">📈</span>
+                    <span class="nav-item-text">Reports</span>
+                </div>
+                <div class="nav-item" onclick="app.downloadBackup()">
+                    <span class="nav-item-icon">⚙️</span>
+                    <span class="nav-item-text">BackUp Database</span>
+                </div>
+            </nav>
+            <div class="nav-footer">
+                <p>v1.0.0</p>
+                <p>© 2025 NGU Fitness</p>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content reports-main">
+            <!-- Header -->
+            <!-- <header class="header">
+                <div class="header-content">
+                    <img src="logo.png" alt="NGU Fitness Logo" class="header-logo">
+                    <div>
+                        <h1>Reports & Analytics</h1>
+                        <p>Track your gym's performance with detailed insights</p>
+                    </div>
+                </div>
+            </header> -->
+
+            <!-- Period Selector -->
+            <div class="period-selector">
+                <button class="period-btn" data-period="daily">
+                    <span class="period-icon">📅</span>
+                    <span>Daily</span>
+                </button>
+                <button class="period-btn active" data-period="monthly">
+                    <span class="period-icon">📆</span>
+                    <span>Monthly</span>
+                </button>
+                <button class="period-btn" data-period="yearly">
+                    <span class="period-icon">🗓️</span>
+                    <span>Yearly</span>
+                </button>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        🎫
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalMemberships">0</h3>
+                        <p>Total Memberships</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        👥
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalCustomers">0</h3>
+                        <p>Total Customers</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        💰
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="totalRevenue">$0</h3>
+                        <p>Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Membership Registrations</h3>
+                        <p class="chart-subtitle">Track new membership sign-ups over time</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="membershipChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Customer Growth</h3>
+                        <p class="chart-subtitle">Monitor new customer acquisitions</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="customerChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Payment Income</h3>
+                        <p class="chart-subtitle">Analyze revenue trends and patterns</p>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Overlay -->
+            <div id="loadingOverlay" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <p>Loading reports...</p>
+            </div>
+        </main>
+    </div>
+
+    <script src="reports.js"></script>
+</body>
+
+</html>

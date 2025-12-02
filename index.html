@@ -28,18 +28,15 @@
           <span class="nav-item-icon">👥</span>
           <span class="nav-item-text">Customers</span>
         </div>
-        <div class="nav-item">
-          <span class="nav-item-icon">🎫</span>
-          <span class="nav-item-text">Memberships</span>
-        </div>
-        <div class="nav-item">
+        <div class="nav-item" onclick="window.location.href='reports.html'">
           <span class="nav-item-icon">📈</span>
           <span class="nav-item-text">Reports</span>
         </div>
-        <div class="nav-item">
+        <div class="nav-item" onclick="app.downloadBackup()">
           <span class="nav-item-icon">⚙️</span>
-          <span class="nav-item-text">Settings</span>
+          <span class="nav-item-text">BackUp Database</span>
         </div>
+
       </nav>
       <div class="nav-footer">
         <p>v1.0.0</p>
@@ -191,10 +188,6 @@
     </div>
   </div>
 
-  <!-- Backup Button -->
-  <button class="btn-backup" onclick="app.downloadBackup()" title="Download Database Backup">
-    <span>💾</span>
-  </button>
 
   <script src="app.js"></script>
 </body>

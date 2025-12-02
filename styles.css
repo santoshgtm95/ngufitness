@@ -79,7 +79,7 @@ body {
    =========================== */
 .app-container {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 200px 1fr 200px;
   min-height: 100vh;
   gap: var(--spacing-lg);
   padding: var(--spacing-lg);
@@ -89,8 +89,8 @@ body {
    Left Sidebar - Navigation
    =========================== */
 .nav-sidebar {
-  display: none;
-  /* Hidden for now */
+  display: flex;
+  flex-direction: column;
   background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-xl);
@@ -433,7 +433,7 @@ thead {
 }
 
 thead th {
-  padding: var(--spacing-xs);
+  padding: var(--spacing-md);
   text-align: left;
   font-weight: 600;
   color: var(--text-secondary);
