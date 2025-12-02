@@ -1,15 +1,8 @@
-// ===========================
-// API Configuration
-// ===========================
 const API_BASE_URL = 'http://localhost:3000/api';
 
-// ===========================
-// Data Management
-// ===========================
 class GymMembershipApp {
   constructor() {
     this.customers = [];
-    this.memberships = [];
     this.init();
   }
 
@@ -25,50 +18,70 @@ class GymMembershipApp {
       await this.renderExpirationAlerts();
     } catch (error) {
       console.error('Error loading data:', error);
-      this.showError('Failed to load data. Please make sure the backend server is running.');
+      // alert('Failed to load data. Please make sure the backend server is running.');
     }
   }
 
   setupEventListeners() {
     // Search functionality
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      this.searchCustomers(e.target.value);
-    });
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        this.searchCustomers(e.target.value);
+      });
+    }
 
     // Phone number validation
-    document.getElementById('customerPhone').addEventListener('input', (e) => {
-      e.target.value = e.target.value.replace(/[^0-9+]/g, '');
-    });
+    const customerPhone = document.getElementById('customerPhone');
+    if (customerPhone) {
+      customerPhone.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9+]/g, '');
+      });
+    }
 
     // Customer form submission
-    document.getElementById('customerForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.saveCustomer();
-    });
+    const customerForm = document.getElementById('customerForm');
+    if (customerForm) {
+      customerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveCustomer();
+      });
+    }
 
     // Membership form submission
-    document.getElementById('membershipForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      this.saveMembership();
-    });
+    const membershipForm = document.getElementById('membershipForm');
+    if (membershipForm) {
+      membershipForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        this.saveMembership();
+      });
+    }
 
-    // Auto-calculate expiration date when package or start date changes
-    document.getElementById('membershipPackage').addEventListener('change', () => {
-      this.calculateExpirationDate();
-    });
-    document.getElementById('membershipStartDate').addEventListener('change', () => {
-      this.calculateExpirationDate();
-    });
+    // Auto-calculate expiration date
+    const membershipPackage = document.getElementById('membershipPackage');
+    if (membershipPackage) {
+      membershipPackage.addEventListener('change', () => {
+        this.calculateExpirationDate();
+      });
+    }
+
+    const membershipStartDate = document.getElementById('membershipStartDate');
+    if (membershipStartDate) {
+      membershipStartDate.addEventListener('change', () => {
+        this.calculateExpirationDate();
+      });
+    }
   }
 
   setDefaultDate() {
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('membershipStartDate').value = today;
+    const startDateInput = document.getElementById('membershipStartDate');
+    if (startDateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      startDateInput.value = today;
+    }
   }
 
-  // ===========================
   // API Methods
-  // ===========================
   async fetchCustomers() {
     try {
       const response = await fetch(`${API_BASE_URL}/customers`);
@@ -102,9 +115,7 @@ class GymMembershipApp {
     }
   }
 
-  // ===========================
   // Customer Management
-  // ===========================
   showAddCustomerModal() {
     document.getElementById('customerModalTitle').textContent = 'Add Customer';
     document.getElementById('customerForm').reset();
@@ -143,14 +154,12 @@ class GymMembershipApp {
     try {
       let response;
       if (id) {
-        // Update existing customer
         response = await fetch(`${API_BASE_URL}/customers/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, phone, address })
         });
       } else {
-        // Create new customer
         response = await fetch(`${API_BASE_URL}/customers`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -167,11 +176,9 @@ class GymMembershipApp {
       await this.fetchCustomers();
       this.closeCustomerModal();
 
-      // Automatically open membership registration for new customers
-      if (!id) {
-        setTimeout(() => {
-          this.showAddMembershipModal(result.data.id);
-        }, 300);
+      // If it was a new customer (not an edit), open membership modal
+      if (!id && result.data && result.data.id) {
+        this.showAddMembershipModal(result.data.id);
       }
     } catch (error) {
       console.error('Error saving customer:', error);
@@ -196,22 +203,19 @@ class GymMembershipApp {
       }
 
       await this.fetchCustomers();
-      await this.renderExpirationAlerts();
+      await this.renderExpirationAlerts(); // Refresh alerts as well
     } catch (error) {
       console.error('Error deleting customer:', error);
       alert('Failed to delete customer: ' + error.message);
     }
   }
 
-  // ===========================
   // Membership Management
-  // ===========================
   showAddMembershipModal(customerId = null) {
     document.getElementById('membershipModalTitle').textContent = customerId ? 'Update Membership' : 'Register Membership';
     document.getElementById('membershipForm').reset();
     this.setDefaultDate();
 
-    // Populate customer dropdown
     this.populateCustomerDropdown();
 
     if (customerId) {
@@ -219,7 +223,6 @@ class GymMembershipApp {
       document.getElementById('membershipCustomerSelect').value = customerId;
       document.getElementById('membershipCustomerSelect').disabled = true;
 
-      // Load existing membership data
       const customer = this.customers.find(c => c.id === customerId);
       if (customer && customer.membership) {
         document.getElementById('membershipStartDate').value = customer.membership.startDate;
@@ -228,6 +231,7 @@ class GymMembershipApp {
         this.calculateExpirationDate();
       }
     } else {
+      document.getElementById('membershipCustomerId').value = '';
       document.getElementById('membershipCustomerSelect').disabled = false;
     }
 
@@ -237,11 +241,12 @@ class GymMembershipApp {
   closeMembershipModal() {
     document.getElementById('membershipModal').classList.remove('active');
     document.getElementById('membershipForm').reset();
-    document.getElementById('membershipCustomerSelect').disabled = false;
   }
 
   populateCustomerDropdown() {
     const select = document.getElementById('membershipCustomerSelect');
+    if (!select) return;
+
     select.innerHTML = '<option value="">-- Select a customer --</option>';
 
     this.customers.forEach(customer => {
@@ -257,7 +262,8 @@ class GymMembershipApp {
     const packageType = document.getElementById('membershipPackage').value;
 
     if (!startDate || !packageType) {
-      document.getElementById('membershipExpireDate').value = '';
+      const expireDateInput = document.getElementById('membershipExpireDate');
+      if (expireDateInput) expireDateInput.value = '';
       return;
     }
 
@@ -265,21 +271,11 @@ class GymMembershipApp {
     let expireDate = new Date(start);
 
     switch (packageType) {
-      case '1day':
-        expireDate.setDate(expireDate.getDate() + 1);
-        break;
-      case '15days':
-        expireDate.setDate(expireDate.getDate() + 15);
-        break;
-      case '1month':
-        expireDate.setMonth(expireDate.getMonth() + 1);
-        break;
-      case '6months':
-        expireDate.setMonth(expireDate.getMonth() + 6);
-        break;
-      case '1year':
-        expireDate.setFullYear(expireDate.getFullYear() + 1);
-        break;
+      case '1day': expireDate.setDate(expireDate.getDate() + 1); break;
+      case '15days': expireDate.setDate(expireDate.getDate() + 15); break;
+      case '1month': expireDate.setMonth(expireDate.getMonth() + 1); break;
+      case '6months': expireDate.setMonth(expireDate.getMonth() + 6); break;
+      case '1year': expireDate.setFullYear(expireDate.getFullYear() + 1); break;
     }
 
     document.getElementById('membershipExpireDate').value = expireDate.toISOString().split('T')[0];
@@ -292,22 +288,16 @@ class GymMembershipApp {
     const expireDate = document.getElementById('membershipExpireDate').value;
     const payment = document.getElementById('membershipPayment').value;
 
-    console.log('Payment raw value:', payment, 'Type:', typeof payment, 'Length:', payment.length);
-
     if (!customerId || !startDate || !packageType || !payment) {
       alert('Please fill in all required fields');
       return;
     }
 
-    // Validate payment
     const paymentAmount = parseInt(payment);
-    console.log('Payment after parseInt:', paymentAmount, 'isNaN:', isNaN(paymentAmount));
     if (isNaN(paymentAmount) || paymentAmount < 0) {
       alert('Payment must be a valid number greater than or equal to 0');
       return;
     }
-
-    console.log('Sending payment:', paymentAmount, 'Type:', typeof paymentAmount);
 
     try {
       const response = await fetch(`${API_BASE_URL}/memberships`, {
@@ -328,31 +318,32 @@ class GymMembershipApp {
         throw new Error(result.error);
       }
 
-      await this.fetchCustomers();
-      await this.renderExpirationAlerts();
+      await this.fetchCustomers(); // Refresh customer list
+      await this.renderExpirationAlerts(); // Refresh alerts
       this.closeMembershipModal();
+      alert('Membership saved successfully!');
     } catch (error) {
       console.error('Error saving membership:', error);
       alert('Failed to save membership: ' + error.message);
     }
   }
 
-  // ===========================
-  // Rendering Methods
-  // ===========================
+  // Rendering
   renderCustomerTable(customersToRender = null) {
     const tbody = document.getElementById('customerTableBody');
+    if (!tbody) return;
+
     const customers = customersToRender || this.customers;
 
     if (customers.length === 0) {
       tbody.innerHTML = `
-        <tr>
-          <td colspan="7" class="text-center text-muted" style="padding: 3rem;">
-            <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">📋</div>
-            <div>No customers found. Add your first customer to get started!</div>
-          </td>
-        </tr>
-      `;
+                <tr>
+                    <td colspan="7" class="text-center text-muted" style="padding: 3rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">📋</div>
+                        <div>No customers found. Add your first customer to get started!</div>
+                    </td>
+                </tr>
+            `;
       return;
     }
 
@@ -361,88 +352,61 @@ class GymMembershipApp {
       const status = this.getMembershipStatus(membership);
 
       return `
-        <tr>
-          <td><strong>${this.escapeHtml(customer.name)}</strong></td>
-          <td>${this.escapeHtml(customer.phone)}</td>
-          <td>${this.escapeHtml(customer.address)}</td>
-          <td>
-            <span class="status-badge status-${status.class}">${status.text}</span>
-          </td>
-          <td>${membership ? this.getPackageLabel(membership.packageType) : '-'}</td>
-          <td>${membership ? this.formatDate(membership.expireDate) : '-'}</td>
-          <td>
-            <div class="table-actions">
-              <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer">✏️</button>
-              <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Manage Membership">🎫</button>
-              <button class="btn-icon" onclick="app.deleteCustomer('${customer.id}')" title="Delete Customer">🗑️</button>
-            </div>
-          </td>
-        </tr>
-      `;
+                <tr>
+                    <td><strong>${this.escapeHtml(customer.name)}</strong></td>
+                    <td>${this.escapeHtml(customer.phone)}</td>
+                  <!-- <td>${this.escapeHtml(customer.address)}</td> -->
+                    <td>
+                        <span class="status-badge status-${status.class}">${status.text}</span>
+                    </td>
+                    <td>${membership ? this.getPackageLabel(membership.packageType) : '-'}</td>
+                    <td>${membership ? this.formatDate(membership.expireDate) : '-'}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer">✏️</button>
+                            <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Manage Membership">🎫</button>
+                            <button class="btn-icon" onclick="app.deleteCustomer('${customer.id}')" title="Delete Customer">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
     }).join('');
   }
 
   async renderExpirationAlerts() {
     const alertList = document.getElementById('alertList');
+    if (!alertList) return;
+
     const expiringMembers = await this.fetchExpiringMemberships();
 
     if (expiringMembers.length === 0) {
       alertList.innerHTML = `
-        <div class="alert-empty">
-          <div class="alert-empty-icon">✅</div>
-          <p>No memberships expiring in the next 5 days</p>
-        </div>
-      `;
+                <div class="alert-empty">
+                    <div class="alert-empty-icon">✅</div>
+                    <p>No memberships expiring in the next 5 days</p>
+                </div>
+            `;
       return;
     }
-
     alertList.innerHTML = expiringMembers.map(({ customer, membership, daysLeft }) => {
+      const daysClass = daysLeft <= 3 ? 'danger' : 'warning';
+      const daysText = daysLeft === 0 ? 'Today' : `${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`;
+
       return `
-        <div class="alert-item">
-          <div class="alert-item-name">${this.escapeHtml(customer.name)}</div>
-          <div class="alert-item-info">
-            <span>📞 ${this.escapeHtml(customer.phone)}</span>
-            <span>📅 Expires: ${this.formatDate(membership.expireDate)}</span>
-            <span>⏰ ${daysLeft} day${daysLeft !== 1 ? 's' : ''} left</span>
-          </div>
-        </div>
-      `;
+                <div class="alert-item">
+                    <div class="alert-header">
+                        <div class="alert-info">
+                            <div class="alert-name">${this.escapeHtml(customer.name)}</div>
+                            <div class="alert-phone">📞 ${this.escapeHtml(customer.phone)}</div>
+                        </div>
+                    </div>
+                    <div class="alert-footer">
+                        <div class="alert-date">📅 ${this.formatDate(membership.expireDate)}</div>
+                        <div class="alert-badge badge-${daysClass}">${daysText}</div>
+                    </div>
+                </div>
+            `;
     }).join('');
-  }
-
-  // ===========================
-  // Helper Methods
-  // ===========================
-  getMembershipStatus(membership) {
-    if (!membership) {
-      return { class: 'none', text: 'No Membership' };
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const expireDate = new Date(membership.expireDate);
-    expireDate.setHours(0, 0, 0, 0);
-    const fiveDaysFromNow = new Date(today);
-    fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + 5);
-
-    if (expireDate < today) {
-      return { class: 'expired', text: 'Expired' };
-    } else if (expireDate <= fiveDaysFromNow) {
-      return { class: 'expiring', text: 'Expiring Soon' };
-    } else {
-      return { class: 'active', text: 'Active' };
-    }
-  }
-
-  getPackageLabel(packageType) {
-    const labels = {
-      '1day': '1 Day',
-      '15days': '15 Days',
-      '1month': '1 Month',
-      '6months': '6 Months',
-      '1year': '1 Year'
-    };
-    return labels[packageType] || packageType;
   }
 
   searchCustomers(query) {
@@ -461,10 +425,36 @@ class GymMembershipApp {
     this.renderCustomerTable(filtered);
   }
 
+  // Helpers
+  getMembershipStatus(membership) {
+    if (!membership) return { class: 'none', text: 'No Membership' };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expireDate = new Date(membership.expireDate);
+    expireDate.setHours(0, 0, 0, 0);
+    const fiveDaysFromNow = new Date(today);
+    fiveDaysFromNow.setDate(fiveDaysFromNow.getDate() + 5);
+
+    if (expireDate < today) return { class: 'expired', text: 'Expired' };
+    else if (expireDate <= fiveDaysFromNow) return { class: 'expiring', text: 'Expiring Soon' };
+    else return { class: 'active', text: 'Active' };
+  }
+
+  getPackageLabel(packageType) {
+    const labels = {
+      '1day': '1 Day',
+      '15days': '15 Days',
+      '1month': '1 Month',
+      '6months': '6 Months',
+      '1year': '1 Year'
+    };
+    return labels[packageType] || packageType;
+  }
+
   formatDate(dateString) {
     const date = new Date(dateString);
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   escapeHtml(text) {
@@ -476,11 +466,6 @@ class GymMembershipApp {
   downloadBackup() {
     window.location.href = `${API_BASE_URL}/backup`;
   }
-
-  showError(message) {
-    alert(message);
-  }
 }
 
-// Initialize the app
 const app = new GymMembershipApp();

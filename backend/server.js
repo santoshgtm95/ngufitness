@@ -26,8 +26,8 @@ app.use((req, res, next) => {
     next();
 });
 
-// Serve static files from parent directory
-app.use(express.static(path.join(__dirname, '..')));
+// Serve static files from frontend directory
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
