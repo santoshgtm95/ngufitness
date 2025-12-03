@@ -111,6 +111,49 @@
     </div>
   </div>
 
+  <!-- Customer Details Modal -->
+  <div id="customerDetailsModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="detailsCustomerName">Customer Details</h2>
+        <button class="modal-close" onclick="app.closeCustomerDetailsModal()">✕</button>
+      </div>
+
+      <div class="details-section">
+        <div class="details-info-grid">
+          <div class="details-item">
+            <span class="details-label">Phone</span>
+            <span class="details-value" id="detailsCustomerPhone">-</span>
+          </div>
+          <div class="details-item">
+            <span class="details-label">Address</span>
+            <span class="details-value" id="detailsCustomerAddress">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="history-section">
+        <h3>Membership History</h3>
+        <div class="table-wrapper">
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Package</th>
+                <th>Start Date</th>
+                <th>Expire Date</th>
+                <th>Status</th>
+                <th>Payment</th>
+              </tr>
+            </thead>
+            <tbody id="membershipHistoryBody">
+              <!-- History rows will be inserted here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Add/Edit Membership Modal (Needed for "Register Membership" button) -->
   <div id="membershipModal" class="modal">
     <div class="modal-content">
@@ -120,6 +163,7 @@
       </div>
       <form id="membershipForm">
         <input type="hidden" id="membershipCustomerId">
+        <input type="hidden" id="membershipId">
         <div class="form-group">
           <label for="membershipCustomerSelect">Select Customer *</label>
           <select id="membershipCustomerSelect" required>

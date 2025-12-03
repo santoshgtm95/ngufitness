@@ -40,15 +40,27 @@ router.get('/', async (req, res, next) => {
             }
 
             if (row.membership_id) {
-                customersMap.get(row.id).membership = {
+                if (!customersMap.get(row.id).memberships) {
+                    customersMap.get(row.id).memberships = [];
+                }
+                customersMap.get(row.id).memberships.push({
                     id: row.membership_id,
                     startDate: row.start_date,
                     expireDate: row.expire_date,
                     packageType: row.package_type,
                     payment: row.payment,
                     createdAt: row.membership_created_at
-                };
+                });
             }
+        });
+
+        // Convert map to array and sort memberships by date desc
+        const customerList = Array.from(customersMap.values()).map(customer => {
+            if (customer.memberships) {
+                customer.memberships.sort((a, b) => new Date(b.expireDate) - new Date(a.expireDate));
+                customer.membership = customer.memberships[0]; // Keep latest as 'membership' for backward compatibility
+            }
+            return customer;
         });
 
         res.json({
@@ -72,14 +84,15 @@ router.get('/:id', async (req, res, next) => {
             });
         }
 
-        // Get membership if exists
-        const membership = db.prepare('SELECT * FROM memberships WHERE customer_id = ?').get(req.params.id);
+        // Get memberships if exists
+        const memberships = db.prepare('SELECT * FROM memberships WHERE customer_id = ? ORDER BY expire_date DESC').all(req.params.id);
 
         res.json({
             success: true,
             data: {
                 ...customer,
-                membership: membership || null
+                memberships: memberships || [],
+                membership: memberships[0] || null // Backward compatibility
             }
         });
     } catch (error) {

@@ -891,6 +891,59 @@ tbody td:nth-child(1) {
   box-shadow: var(--shadow-xl), var(--shadow-glow);
 }
 
-.btn-backup:active {
-  transform: translateY(0) scale(0.95);
+/* ===========================
+   Customer Details Modal
+   =========================== */
+.details-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.details-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  background: var(--bg-tertiary);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+}
+
+.details-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.details-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.details-value {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.details-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.history-section h3 {
+  font-size: 1.2rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+}
+
+.history-table th {
+  background: var(--bg-tertiary);
+  font-size: 0.8rem;
+}
+
+.history-table td {
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
 }

@@ -212,8 +212,9 @@ class GymMembershipApp {
 
   // Membership Management
   showAddMembershipModal(customerId = null) {
-    document.getElementById('membershipModalTitle').textContent = customerId ? 'Update Membership' : 'Register Membership';
+    document.getElementById('membershipModalTitle').textContent = customerId ? 'Renew Membership' : 'Register Membership';
     document.getElementById('membershipForm').reset();
+    document.getElementById('membershipId').value = ''; // Clear membership ID for new membership
     this.setDefaultDate();
 
     this.populateCustomerDropdown();
@@ -224,16 +225,44 @@ class GymMembershipApp {
       document.getElementById('membershipCustomerSelect').disabled = true;
 
       const customer = this.customers.find(c => c.id === customerId);
+      // For renewal, we default to today's date, but maybe keep the package type as a suggestion
       if (customer && customer.membership) {
-        document.getElementById('membershipStartDate').value = customer.membership.startDate;
         document.getElementById('membershipPackage').value = customer.membership.packageType;
-        document.getElementById('membershipPayment').value = customer.membership.payment || 0;
-        this.calculateExpirationDate();
+        document.getElementById('membershipPayment').value = customer.membership.payment || 0; // Show previous payment as reference
       }
+      this.setDefaultDate(); // Always set start date to today for new/renew
+      this.calculateExpirationDate();
     } else {
       document.getElementById('membershipCustomerId').value = '';
       document.getElementById('membershipCustomerSelect').disabled = false;
     }
+
+    document.getElementById('membershipModal').classList.add('active');
+  }
+
+  showEditMembershipModal(customerId) {
+    const customer = this.customers.find(c => c.id === customerId);
+    if (!customer || !customer.membership) {
+      alert('No membership found to edit');
+      return;
+    }
+
+    document.getElementById('membershipModalTitle').textContent = 'Edit Membership';
+    document.getElementById('membershipForm').reset();
+
+    this.populateCustomerDropdown();
+
+    // Set membership ID for update operation
+    document.getElementById('membershipId').value = customer.membership.id;
+    document.getElementById('membershipCustomerId').value = customerId;
+    document.getElementById('membershipCustomerSelect').value = customerId;
+    document.getElementById('membershipCustomerSelect').disabled = true;
+
+    // Populate with existing membership data
+    document.getElementById('membershipStartDate').value = customer.membership.startDate;
+    document.getElementById('membershipPackage').value = customer.membership.packageType;
+    document.getElementById('membershipExpireDate').value = customer.membership.expireDate;
+    document.getElementById('membershipPayment').value = customer.membership.payment || 0;
 
     document.getElementById('membershipModal').classList.add('active');
   }
@@ -282,6 +311,7 @@ class GymMembershipApp {
   }
 
   async saveMembership() {
+    const membershipId = document.getElementById('membershipId').value;
     const customerId = document.getElementById('membershipCustomerSelect').value;
     const startDate = document.getElementById('membershipStartDate').value;
     const packageType = document.getElementById('membershipPackage').value;
@@ -300,17 +330,34 @@ class GymMembershipApp {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/memberships`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId,
-          startDate,
-          expireDate,
-          packageType,
-          payment: paymentAmount
-        })
-      });
+      let response;
+
+      if (membershipId) {
+        // Update existing membership
+        response = await fetch(`${API_BASE_URL}/memberships/${membershipId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            startDate,
+            expireDate,
+            packageType,
+            payment: paymentAmount
+          })
+        });
+      } else {
+        // Create new membership
+        response = await fetch(`${API_BASE_URL}/memberships`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId,
+            startDate,
+            expireDate,
+            packageType,
+            payment: paymentAmount
+          })
+        });
+      }
 
       const result = await response.json();
 
@@ -321,11 +368,51 @@ class GymMembershipApp {
       await this.fetchCustomers(); // Refresh customer list
       await this.renderExpirationAlerts(); // Refresh alerts
       this.closeMembershipModal();
-      alert('Membership saved successfully!');
+      alert(membershipId ? 'Membership updated successfully!' : 'Membership saved successfully!');
     } catch (error) {
       console.error('Error saving membership:', error);
       alert('Failed to save membership: ' + error.message);
     }
+  }
+
+  // Customer Details & History
+  showCustomerDetails(customerId) {
+    const customer = this.customers.find(c => c.id === customerId);
+    if (!customer) return;
+
+    document.getElementById('detailsCustomerName').textContent = customer.name;
+    document.getElementById('detailsCustomerPhone').textContent = customer.phone;
+    document.getElementById('detailsCustomerAddress').textContent = customer.address;
+
+    this.renderMembershipHistory(customer.memberships || []);
+    document.getElementById('customerDetailsModal').classList.add('active');
+  }
+
+  closeCustomerDetailsModal() {
+    document.getElementById('customerDetailsModal').classList.remove('active');
+  }
+
+  renderMembershipHistory(memberships) {
+    const tbody = document.getElementById('membershipHistoryBody');
+    if (!tbody) return;
+
+    if (memberships.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No membership history found</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = memberships.map(m => {
+      const status = this.getMembershipStatus(m);
+      return `
+                <tr>
+                    <td>${this.getPackageLabel(m.packageType)}</td>
+                    <td>${this.formatDate(m.startDate)}</td>
+                    <td>${this.formatDate(m.expireDate)}</td>
+                    <td><span class="status-badge status-${status.class}">${status.text}</span></td>
+                    <td>$${m.payment}</td>
+                </tr>
+            `;
+    }).join('');
   }
 
   // Rendering
@@ -348,23 +435,26 @@ class GymMembershipApp {
     }
 
     tbody.innerHTML = customers.map(customer => {
+      // Use the latest membership for the main table status
       const membership = customer.membership;
       const status = this.getMembershipStatus(membership);
 
+      // Row click opens details
       return `
-                <tr>
+                <tr onclick="app.showCustomerDetails('${customer.id}')" style="cursor: pointer;">
                     <td><strong>${this.escapeHtml(customer.name)}</strong></td>
                     <td>${this.escapeHtml(customer.phone)}</td>
-                  <!-- <td>${this.escapeHtml(customer.address)}</td> -->
+                    <!-- <td>${this.escapeHtml(customer.address)}</td> -->
                     <td>
                         <span class="status-badge status-${status.class}">${status.text}</span>
                     </td>
                     <td>${membership ? this.getPackageLabel(membership.packageType) : '-'}</td>
                     <td>${membership ? this.formatDate(membership.expireDate) : '-'}</td>
-                    <td>
+                    <td onclick="event.stopPropagation()">
                         <div class="table-actions">
-                            <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer">✏️</button>
-                            <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Manage Membership">🎫</button>
+                            <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer Info">✏️</button>
+                            <button class="btn-icon" onclick="app.showEditMembershipModal('${customer.id}')" title="Edit Membership">📝</button>
+                            <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Renew Membership">🎫</button>
                             <button class="btn-icon" onclick="app.deleteCustomer('${customer.id}')" title="Delete Customer">🗑️</button>
                         </div>
                     </td>

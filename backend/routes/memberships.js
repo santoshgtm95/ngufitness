@@ -7,7 +7,7 @@ const generateId = () => {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 };
 
-// GET /api/memberships/expiring - Get memberships expiring within 5 days
+// GET /api/memberships/expiring - Get memberships expiring within 5 days (including today)
 router.get('/expiring', async (req, res, next) => {
     try {
         const memberships = db.prepare(`
@@ -16,11 +16,11 @@ router.get('/expiring', async (req, res, next) => {
         c.name as customer_name,
         c.phone as customer_phone,
         c.address as customer_address,
-        CAST((julianday(m.expire_date) - julianday('now')) AS INTEGER) as days_left
+        CAST((julianday(m.expire_date) - julianday(date('now'))) AS INTEGER) as days_left
       FROM memberships m
       INNER JOIN customers c ON m.customer_id = c.id
-      WHERE julianday(m.expire_date) >= julianday('now')
-        AND julianday(m.expire_date) <= julianday('now', '+3 days')
+      WHERE date(m.expire_date) >= date('now')
+        AND date(m.expire_date) <= date('now', '+5 days')
       ORDER BY m.expire_date ASC
     `).all();
 
@@ -113,38 +113,77 @@ router.post('/', async (req, res, next) => {
             });
         }
 
-        // Check if membership already exists for this customer
-        const existingMembership = db.prepare('SELECT id FROM memberships WHERE customer_id = ?').get(customerId);
+        // Create new membership
+        const id = generateId();
 
-        if (existingMembership) {
-            // Update existing membership
-            db.prepare(
-                'UPDATE memberships SET start_date = ?, expire_date = ?, package_type = ?, payment = ?, updated_at = CURRENT_TIMESTAMP WHERE customer_id = ?'
-            ).run(startDate, expireDate, packageType, paymentAmount, customerId);
+        db.prepare(
+            'INSERT INTO memberships (id, customer_id, start_date, expire_date, package_type, payment) VALUES (?, ?, ?, ?, ?, ?)'
+        ).run(id, customerId, startDate, expireDate, packageType, paymentAmount);
 
-            const updatedMembership = db.prepare('SELECT * FROM memberships WHERE customer_id = ?').get(customerId);
+        const newMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
 
-            res.json({
-                success: true,
-                data: updatedMembership,
-                message: 'Membership updated successfully'
-            });
-        } else {
-            // Create new membership
-            const id = generateId();
+        res.status(201).json({
+            success: true,
+            data: newMembership,
+            message: 'Membership created successfully'
+        });
+    } catch (error) {
+        next(error);
+    }
+});
 
-            db.prepare(
-                'INSERT INTO memberships (id, customer_id, start_date, expire_date, package_type, payment) VALUES (?, ?, ?, ?, ?, ?)'
-            ).run(id, customerId, startDate, expireDate, packageType, paymentAmount);
+// PUT /api/memberships/:id - Update existing membership
+router.put('/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { startDate, expireDate, packageType, payment } = req.body;
 
-            const newMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
-
-            res.status(201).json({
-                success: true,
-                data: newMembership,
-                message: 'Membership created successfully'
+        // Validation
+        if (!startDate || !expireDate || !packageType) {
+            return res.status(400).json({
+                success: false,
+                error: 'Start date, expire date, and package type are required'
             });
         }
+
+        // Validate payment (required, must be a number >= 0)
+        if (payment === undefined || payment === null || payment === '') {
+            return res.status(400).json({
+                success: false,
+                error: 'Payment amount is required'
+            });
+        }
+
+        const paymentAmount = parseFloat(payment);
+        if (isNaN(paymentAmount) || paymentAmount < 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Payment must be a valid number greater than or equal to 0'
+            });
+        }
+
+        // Verify membership exists
+        const existingMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
+
+        if (!existingMembership) {
+            return res.status(404).json({
+                success: false,
+                error: 'Membership not found'
+            });
+        }
+
+        // Update membership
+        db.prepare(
+            'UPDATE memberships SET start_date = ?, expire_date = ?, package_type = ?, payment = ? WHERE id = ?'
+        ).run(startDate, expireDate, packageType, paymentAmount, id);
+
+        const updatedMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
+
+        res.json({
+            success: true,
+            data: updatedMembership,
+            message: 'Membership updated successfully'
+        });
     } catch (error) {
         next(error);
     }
