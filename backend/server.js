@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const multer = require('multer');
 const path = require('path');
+const archiver = require('archiver');
 require('dotenv').config();
 
 const customersRouter = require('./routes/customers');
@@ -73,7 +74,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Backup endpoint - Export as text file
+// Backup endpoint - Export as ZIP file with images
 app.get('/api/backup', (req, res) => {
     const db = require('./config/database');
 
@@ -85,6 +86,7 @@ app.get('/api/backup', (req, res) => {
                 c.name,
                 c.phone,
                 c.address,
+                c.image,
                 c.created_at as customer_created,
                 m.id as membership_id,
                 m.start_date,
@@ -116,6 +118,7 @@ app.get('/api/backup', (req, res) => {
                     name: row.name,
                     phone: row.phone,
                     address: row.address,
+                    image: row.image,
                     created: row.customer_created,
                     memberships: []
                 });
@@ -141,6 +144,7 @@ app.get('/api/backup', (req, res) => {
             textContent += `Name: ${customer.name}\n`;
             textContent += `Phone: ${customer.phone}\n`;
             textContent += `Address: ${customer.address}\n`;
+            textContent += `Image: ${customer.image || 'None'}\n`;
             textContent += `Registered: ${customer.created}\n`;
 
             if (customer.memberships.length > 0) {
@@ -163,18 +167,68 @@ app.get('/api/backup', (req, res) => {
         textContent += '\nEND OF BACKUP\n';
         textContent += '='.repeat(80) + '\n';
 
-        // Send as downloadable text file
-        const filename = `gym_backup_${new Date().toISOString().split('T')[0]}.txt`;
-        res.setHeader('Content-Type', 'text/plain');
+        // Set headers for ZIP download
+        const filename = `ngu_fitness_backup_${new Date().toISOString().split('T')[0]}.zip`;
+        res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.send(textContent);
+
+        // Create zip archive
+        const archive = archiver('zip', {
+            zlib: { level: 9 } // Sets the compression level.
+        });
+
+        // Listen for all archive data to be written
+        // 'close' event is fired only when a file descriptor is involved
+        res.on('close', function () {
+            console.log(archive.pointer() + ' total bytes');
+            console.log('archiver has been finalized and the output file descriptor has closed.');
+        });
+
+        // This event is fired when the data source is drained no matter what was the data source.
+        // It is not part of this library but rather from the NodeJS Stream API.
+        // @see: https://nodejs.org/api/stream.html#stream_event_end
+        res.on('end', function () {
+            console.log('Data has been drained');
+        });
+
+        // good practice to catch warnings (ie stat failures and other non-blocking errors)
+        archive.on('warning', function (err) {
+            if (err.code === 'ENOENT') {
+                // log warning
+                console.warn('Archiver warning:', err);
+            } else {
+                // throw error
+                throw err;
+            }
+        });
+
+        // good practice to catch this error explicitly
+        archive.on('error', function (err) {
+            throw err;
+        });
+
+        // pipe archive data to the response
+        archive.pipe(res);
+
+        // append the text backup file
+        archive.append(textContent, { name: `gym_data_backup_${new Date().toISOString().split('T')[0]}.txt` });
+
+        // append images directory
+        const imagesDir = path.join(__dirname, 'images/customers');
+        archive.directory(imagesDir, 'images');
+
+        // finalize the archive (ie we are done appending files but streams have to finish yet)
+        // 'close', 'end' or 'finish' may be fired right after this depending on how you added the instance
+        archive.finalize();
 
     } catch (error) {
         console.error('Error creating backup:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
+        if (!res.headersSent) {
+            res.status(500).json({
+                success: false,
+                error: error.message
+            });
+        }
     }
 });
 
