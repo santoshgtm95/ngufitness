@@ -480,12 +480,7 @@ class GymMembershipApp {
       avatarPlaceholder.textContent = customer.name.charAt(0).toUpperCase();
     }
 
-    // Setup Renew Button
-    const renewBtn = document.getElementById('btnRenewMembership');
-    renewBtn.onclick = () => {
-      this.closeCustomerDetailsModal();
-      this.showAddMembershipModal(customerId);
-    };
+
 
     this.renderMembershipHistory(customer.memberships || []);
     document.getElementById('customerDetailsModal').classList.add('active');
