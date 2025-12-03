@@ -57,11 +57,12 @@ class GymMembershipApp {
       });
     }
 
-    // Auto-calculate expiration date
+    // Auto-calculate expiration date and payment amount
     const membershipPackage = document.getElementById('membershipPackage');
     if (membershipPackage) {
       membershipPackage.addEventListener('change', () => {
         this.calculateExpirationDate();
+        this.updatePaymentAmount();
       });
     }
 
@@ -358,13 +359,37 @@ class GymMembershipApp {
 
     switch (packageType) {
       case '1day': expireDate.setDate(expireDate.getDate() + 1); break;
-      case '15days': expireDate.setDate(expireDate.getDate() + 15); break;
+      case '2weeks': expireDate.setDate(expireDate.getDate() + 14); break;
       case '1month': expireDate.setMonth(expireDate.getMonth() + 1); break;
+      case '3months': expireDate.setMonth(expireDate.getMonth() + 3); break;
       case '6months': expireDate.setMonth(expireDate.getMonth() + 6); break;
-      case '1year': expireDate.setFullYear(expireDate.getFullYear() + 1); break;
+      case '12months':
+      case '12months_couple':
+        expireDate.setFullYear(expireDate.getFullYear() + 1); break;
     }
 
     document.getElementById('membershipExpireDate').value = expireDate.toISOString().split('T')[0];
+  }
+
+  updatePaymentAmount() {
+    const packageType = document.getElementById('membershipPackage').value;
+    const paymentInput = document.getElementById('membershipPayment');
+
+    if (!paymentInput) return;
+
+    const prices = {
+      '1day': 200,
+      '2weeks': 1000,
+      '1month': 2500,
+      '3months': 6000,
+      '6months': 8500,
+      '12months': 15000,
+      '12months_couple': 25000
+    };
+
+    if (prices[packageType]) {
+      paymentInput.value = prices[packageType];
+    }
   }
 
   async saveMembership() {
@@ -522,10 +547,6 @@ class GymMembershipApp {
                 <tr onclick="app.showCustomerDetails('${customer.id}')" style="cursor: pointer;">
                     <td>
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            ${customer.image ?
-          `<img src="http://localhost:3000/images/customers/${customer.image}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">` :
-          `<div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: var(--shadow-sm);">${customer.name.charAt(0).toUpperCase()}</div>`
-        }
                             <strong>${this.escapeHtml(customer.name)}</strong>
                         </div>
                     </td>
@@ -620,10 +641,12 @@ class GymMembershipApp {
   getPackageLabel(packageType) {
     const labels = {
       '1day': '1 Day',
-      '15days': '15 Days',
+      '2weeks': '2 Weeks',
       '1month': '1 Month',
+      '3months': '3 Months',
       '6months': '6 Months',
-      '1year': '1 Year'
+      '12months': '12 Months',
+      '12months_couple': '12 Months Couple'
     };
     return labels[packageType] || packageType;
   }
