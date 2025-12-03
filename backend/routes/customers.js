@@ -1,6 +1,34 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for this route
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '../images/customers'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: function (req, file, cb) {
+        const allowedTypes = /jpeg|jpg|png|gif/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'));
+        }
+    }
+});
 
 // Generate unique ID
 const generateId = () => {
@@ -33,6 +61,7 @@ router.get('/', async (req, res, next) => {
                     name: row.name,
                     phone: row.phone,
                     address: row.address,
+                    image: row.image,
                     createdAt: row.created_at,
                     updatedAt: row.updated_at,
                     membership: null
@@ -101,9 +130,10 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // POST /api/customers - Create new customer
-router.post('/', async (req, res, next) => {
+router.post('/', upload.single('image'), async (req, res, next) => {
     try {
         const { name, phone, address } = req.body;
+        const image = req.file ? req.file.filename : null;
 
         // Validation
         if (!name || !phone || !address) {
@@ -115,7 +145,7 @@ router.post('/', async (req, res, next) => {
 
         const id = generateId();
 
-        db.prepare('INSERT INTO customers (id, name, phone, address) VALUES (?, ?, ?, ?)').run(id, name, phone, address);
+        db.prepare('INSERT INTO customers (id, name, phone, address, image) VALUES (?, ?, ?, ?, ?)').run(id, name, phone, address, image);
 
         const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
 
@@ -129,9 +159,10 @@ router.post('/', async (req, res, next) => {
 });
 
 // PUT /api/customers/:id - Update customer
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', upload.single('image'), async (req, res, next) => {
     try {
         const { name, phone, address } = req.body;
+        const image = req.file ? req.file.filename : undefined;
 
         // Validation
         if (!name || !phone || !address) {
@@ -141,9 +172,18 @@ router.put('/:id', async (req, res, next) => {
             });
         }
 
-        const result = db.prepare(
-            'UPDATE customers SET name = ?, phone = ?, address = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-        ).run(name, phone, address, req.params.id);
+        let result;
+        if (image) {
+            // Update with new image
+            result = db.prepare(
+                'UPDATE customers SET name = ?, phone = ?, address = ?, image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+            ).run(name, phone, address, image, req.params.id);
+        } else {
+            // Update without changing image
+            result = db.prepare(
+                'UPDATE customers SET name = ?, phone = ?, address = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+            ).run(name, phone, address, req.params.id);
+        }
 
         if (result.changes === 0) {
             return res.status(404).json({

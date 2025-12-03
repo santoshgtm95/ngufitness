@@ -71,6 +71,31 @@ class GymMembershipApp {
         this.calculateExpirationDate();
       });
     }
+
+    // Image preview
+    const customerImageInput = document.getElementById('customerImageInput');
+    if (customerImageInput) {
+      customerImageInput.addEventListener('change', (e) => {
+        this.previewImage(e.target.files[0]);
+      });
+    }
+  }
+
+  previewImage(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const avatarImage = document.getElementById('customerAvatarImage');
+      const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+
+      if (avatarImage && avatarPlaceholder) {
+        avatarImage.src = e.target.result;
+        avatarImage.style.display = 'block';
+        avatarPlaceholder.style.display = 'none';
+      }
+    };
+    reader.readAsDataURL(file);
   }
 
   setDefaultDate() {
@@ -132,12 +157,34 @@ class GymMembershipApp {
     document.getElementById('customerName').value = customer.name;
     document.getElementById('customerPhone').value = customer.phone;
     document.getElementById('customerAddress').value = customer.address;
+
+    // Display existing image if available
+    const avatarImage = document.getElementById('customerAvatarImage');
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+
+    if (customer.image) {
+      avatarImage.src = `http://localhost:3000/images/customers/${customer.image}`;
+      avatarImage.style.display = 'block';
+      avatarPlaceholder.style.display = 'none';
+    } else {
+      avatarImage.style.display = 'none';
+      avatarPlaceholder.style.display = 'block';
+    }
+
     document.getElementById('customerModal').classList.add('active');
   }
 
   closeCustomerModal() {
     document.getElementById('customerModal').classList.remove('active');
     document.getElementById('customerForm').reset();
+
+    // Reset avatar preview
+    const avatarImage = document.getElementById('customerAvatarImage');
+    const avatarPlaceholder = document.querySelector('.avatar-placeholder');
+    if (avatarImage && avatarPlaceholder) {
+      avatarImage.style.display = 'none';
+      avatarPlaceholder.style.display = 'block';
+    }
   }
 
   async saveCustomer() {
@@ -145,6 +192,7 @@ class GymMembershipApp {
     const name = document.getElementById('customerName').value.trim();
     const phone = document.getElementById('customerPhone').value.trim();
     const address = document.getElementById('customerAddress').value.trim();
+    const imageInput = document.getElementById('customerImageInput');
 
     if (!name || !phone || !address) {
       alert('Please fill in all required fields');
@@ -152,18 +200,27 @@ class GymMembershipApp {
     }
 
     try {
+      // Use FormData for file upload
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('phone', phone);
+      formData.append('address', address);
+
+      // Add image if selected
+      if (imageInput.files && imageInput.files[0]) {
+        formData.append('image', imageInput.files[0]);
+      }
+
       let response;
       if (id) {
         response = await fetch(`${API_BASE_URL}/customers/${id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, address })
+          body: formData
         });
       } else {
         response = await fetch(`${API_BASE_URL}/customers`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, address })
+          body: formData
         });
       }
 
@@ -384,6 +441,27 @@ class GymMembershipApp {
     document.getElementById('detailsCustomerPhone').textContent = customer.phone;
     document.getElementById('detailsCustomerAddress').textContent = customer.address;
 
+    // Show avatar
+    const avatarImage = document.getElementById('detailsCustomerImage');
+    const avatarPlaceholder = document.getElementById('detailsCustomerAvatarPlaceholder');
+
+    if (customer.image) {
+      avatarImage.src = `http://localhost:3000/images/customers/${customer.image}`;
+      avatarImage.style.display = 'block';
+      avatarPlaceholder.style.display = 'none';
+    } else {
+      avatarImage.style.display = 'none';
+      avatarPlaceholder.style.display = 'flex';
+      avatarPlaceholder.textContent = customer.name.charAt(0).toUpperCase();
+    }
+
+    // Setup Renew Button
+    const renewBtn = document.getElementById('btnRenewMembership');
+    renewBtn.onclick = () => {
+      this.closeCustomerDetailsModal();
+      this.showAddMembershipModal(customerId);
+    };
+
     this.renderMembershipHistory(customer.memberships || []);
     document.getElementById('customerDetailsModal').classList.add('active');
   }
@@ -442,7 +520,15 @@ class GymMembershipApp {
       // Row click opens details
       return `
                 <tr onclick="app.showCustomerDetails('${customer.id}')" style="cursor: pointer;">
-                    <td><strong>${this.escapeHtml(customer.name)}</strong></td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            ${customer.image ?
+          `<img src="http://localhost:3000/images/customers/${customer.image}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow-sm);">` :
+          `<div style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; box-shadow: var(--shadow-sm);">${customer.name.charAt(0).toUpperCase()}</div>`
+        }
+                            <strong>${this.escapeHtml(customer.name)}</strong>
+                        </div>
+                    </td>
                     <td>${this.escapeHtml(customer.phone)}</td>
                     <!-- <td>${this.escapeHtml(customer.address)}</td> -->
                     <td>

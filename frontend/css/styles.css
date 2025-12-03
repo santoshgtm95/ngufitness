@@ -650,7 +650,7 @@ tbody td:nth-child(1) {
 .modal-content {
   background: var(--bg-secondary);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-lg);
   max-width: 600px;
   width: 90%;
   max-height: 90vh;
@@ -676,8 +676,7 @@ tbody td:nth-child(1) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
@@ -754,13 +753,79 @@ tbody td:nth-child(1) {
   gap: var(--spacing-md);
 }
 
+/* ===========================
+   Avatar Upload
+   =========================== */
+.avatar-upload-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-circle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar-circle:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+}
+
+.avatar-circle::after {
+  content: '📷';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.avatar-circle:hover::after {
+  opacity: 1;
+}
+
+.avatar-placeholder {
+  font-size: 3rem;
+  color: white;
+}
+
+.avatar-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-hint {
+  margin-top: var(--spacing-md);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .form-actions {
   display: flex;
   gap: var(--spacing-md);
   justify-content: flex-end;
   margin-top: var(--spacing-xl);
   padding-top: var(--spacing-lg);
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* ===========================

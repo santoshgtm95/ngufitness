@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 const path = require('path');
 require('dotenv').config();
 
@@ -9,8 +10,39 @@ const membershipsRouter = require('./routes/memberships');
 const reportsRouter = require('./routes/reports');
 const errorHandler = require('./middleware/errorHandler');
 
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'images/customers'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: function (req, file, cb) {
+        const allowedTypes = /jpeg|jpg|png|gif/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only image files (jpeg, jpg, png, gif) are allowed'));
+        }
+    }
+});
+
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Export upload middleware for use in routes
+module.exports.upload = upload;
+
 
 // Middleware
 app.use(cors({
@@ -28,6 +60,9 @@ app.use((req, res, next) => {
 
 // Serve static files from frontend directory
 app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Serve uploaded images
+app.use('/images', express.static(path.join(__dirname, 'images')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
