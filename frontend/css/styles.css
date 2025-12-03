@@ -183,7 +183,7 @@ body {
   background: var(--bg-card);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-xl);
-  padding: var(--spacing-lg);
+  padding: var(--spacing-xs);
   /* No replacement content needed as we are using multi-replace to target specific lines */
   box-shadow: var(--shadow-lg);
   height: fit-content;
@@ -195,13 +195,13 @@ body {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-xs);
+  padding-bottom: var(--spacing-xs);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .alerts-sidebar-header h2 {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   background: var(--gradient-warning);
   -webkit-background-clip: text;
@@ -229,7 +229,7 @@ body {
 .alert-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-xs);
 }
 
 .alert-item {
@@ -846,7 +846,7 @@ tbody td {
     position: relative;
     top: 0;
     display: block;
-    margin-top: var(--spacing-lg);
+    margin-top: var(--spacing-xs);
   }
 }
 
