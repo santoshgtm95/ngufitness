@@ -38,6 +38,19 @@ router.get('/daily', (req, res) => {
             ORDER BY date
         `).all(targetYear.toString(), targetMonth.toString().padStart(2, '0'));
 
+        // Get daily service revenue
+        const serviceData = db.prepare(`
+            SELECT 
+                DATE(created_at) as date,
+                COUNT(*) as count,
+                SUM(price) as total_payment
+            FROM services
+            WHERE strftime('%Y', created_at) = ? 
+            AND strftime('%m', created_at) = ?
+            GROUP BY DATE(created_at)
+            ORDER BY date
+        `).all(targetYear.toString(), targetMonth.toString().padStart(2, '0'));
+
         // Get total statistics for the month
         const totals = db.prepare(`
             SELECT 
@@ -49,8 +62,12 @@ router.get('/daily', (req, res) => {
                  AND strftime('%m', created_at) = ?) as total_customers,
                 (SELECT COALESCE(SUM(payment), 0) FROM memberships 
                  WHERE strftime('%Y', created_at) = ? 
+                 AND strftime('%m', created_at) = ?) +
+                (SELECT COALESCE(SUM(price), 0) FROM services 
+                 WHERE strftime('%Y', created_at) = ? 
                  AND strftime('%m', created_at) = ?) as total_revenue
         `).get(
+            targetYear.toString(), targetMonth.toString().padStart(2, '0'),
             targetYear.toString(), targetMonth.toString().padStart(2, '0'),
             targetYear.toString(), targetMonth.toString().padStart(2, '0'),
             targetYear.toString(), targetMonth.toString().padStart(2, '0')
@@ -64,6 +81,7 @@ router.get('/daily', (req, res) => {
             data: {
                 memberships: membershipData,
                 customers: customerData,
+                services: serviceData,
                 totals: totals
             }
         });
@@ -108,6 +126,18 @@ router.get('/monthly', (req, res) => {
             ORDER BY month
         `).all(targetYear.toString());
 
+        // Get monthly service revenue
+        const serviceData = db.prepare(`
+            SELECT 
+                strftime('%m', created_at) as month,
+                COUNT(*) as count,
+                SUM(price) as total_payment
+            FROM services
+            WHERE strftime('%Y', created_at) = ?
+            GROUP BY strftime('%m', created_at)
+            ORDER BY month
+        `).all(targetYear.toString());
+
         // Get total statistics for the year
         const totals = db.prepare(`
             SELECT 
@@ -116,8 +146,10 @@ router.get('/monthly', (req, res) => {
                 (SELECT COUNT(*) FROM customers 
                  WHERE strftime('%Y', created_at) = ?) as total_customers,
                 (SELECT COALESCE(SUM(payment), 0) FROM memberships 
+                 WHERE strftime('%Y', created_at) = ?) +
+                (SELECT COALESCE(SUM(price), 0) FROM services 
                  WHERE strftime('%Y', created_at) = ?) as total_revenue
-        `).get(targetYear.toString(), targetYear.toString(), targetYear.toString());
+        `).get(targetYear.toString(), targetYear.toString(), targetYear.toString(), targetYear.toString());
 
         res.json({
             success: true,
@@ -126,6 +158,7 @@ router.get('/monthly', (req, res) => {
             data: {
                 memberships: membershipData,
                 customers: customerData,
+                services: serviceData,
                 totals: totals
             }
         });
@@ -165,12 +198,24 @@ router.get('/yearly', (req, res) => {
             ORDER BY year
         `).all();
 
+        // Get yearly service revenue
+        const serviceData = db.prepare(`
+            SELECT 
+                strftime('%Y', created_at) as year,
+                COUNT(*) as count,
+                SUM(price) as total_payment
+            FROM services
+            GROUP BY strftime('%Y', created_at)
+            ORDER BY year
+        `).all();
+
         // Get overall totals
         const totals = db.prepare(`
             SELECT 
                 (SELECT COUNT(*) FROM memberships) as total_memberships,
                 (SELECT COUNT(*) FROM customers) as total_customers,
-                (SELECT COALESCE(SUM(payment), 0) FROM memberships) as total_revenue
+                (SELECT COALESCE(SUM(payment), 0) FROM memberships) +
+                (SELECT COALESCE(SUM(price), 0) FROM services) as total_revenue
         `).get();
 
         res.json({
@@ -179,6 +224,7 @@ router.get('/yearly', (req, res) => {
             data: {
                 memberships: membershipData,
                 customers: customerData,
+                services: serviceData,
                 totals: totals
             }
         });

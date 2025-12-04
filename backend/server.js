@@ -9,6 +9,7 @@ require('dotenv').config();
 const customersRouter = require('./routes/customers');
 const membershipsRouter = require('./routes/memberships');
 const reportsRouter = require('./routes/reports');
+const servicesRouter = require('./routes/services');
 const errorHandler = require('./middleware/errorHandler');
 
 // Configure multer for file uploads
@@ -236,6 +237,7 @@ app.get('/api/backup', (req, res) => {
 app.use('/api/customers', customersRouter);
 app.use('/api/memberships', membershipsRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/services', servicesRouter);
 
 // 404 handler
 app.use((req, res) => {

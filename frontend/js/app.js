@@ -533,7 +533,7 @@ class GymMembershipApp {
                     <td>${this.formatDate(m.startDate)}</td>
                     <td>${this.formatDate(m.expireDate)}</td>
                     <td><span class="status-badge status-${status.class}">${status.text}</span></td>
-                    <td>$${m.payment}</td>
+                    <td>${m.payment}฿</td>
                 </tr>
             `;
     }).join('');

@@ -66,7 +66,8 @@ function updateCharts(data, period) {
     const labels = generateLabels(data, period);
     const membershipCounts = generateDataPoints(data.data.memberships, labels, period, 'count');
     const customerCounts = generateDataPoints(data.data.customers, labels, period, 'count');
-    const revenueCounts = generateDataPoints(data.data.memberships, labels, period, 'total_payment');
+    const membershipRevenue = generateDataPoints(data.data.memberships, labels, period, 'total_payment');
+    const serviceRevenue = generateDataPoints(data.data.services || [], labels, period, 'total_payment');
 
     // Update membership chart
     updateChart('membershipChart', 'membership', {
@@ -106,18 +107,29 @@ function updateCharts(data, period) {
         }]
     });
 
-    // Update revenue chart
+    // Update revenue chart with stacked bars
     updateChart('revenueChart', 'revenue', {
         labels: labels,
-        datasets: [{
-            label: 'Revenue',
-            data: revenueCounts,
-            backgroundColor: 'rgba(79, 172, 254, 0.8)',
-            borderColor: '#4facfe',
-            borderWidth: 2,
-            borderRadius: 8,
-            hoverBackgroundColor: 'rgba(79, 172, 254, 1)'
-        }]
+        datasets: [
+            {
+                label: 'Membership Revenue',
+                data: membershipRevenue,
+                backgroundColor: 'rgba(79, 172, 254, 0.8)',
+                borderColor: '#4facfe',
+                borderWidth: 2,
+                borderRadius: 8,
+                hoverBackgroundColor: 'rgba(79, 172, 254, 1)'
+            },
+            {
+                label: 'Service Revenue',
+                data: serviceRevenue,
+                backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                borderColor: '#667eea',
+                borderWidth: 2,
+                borderRadius: 8,
+                hoverBackgroundColor: 'rgba(102, 126, 234, 1)'
+            }
+        ]
     }, 'bar');
 }
 
@@ -190,7 +202,15 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
+                    display: chartKey === 'revenue', // Show legend only for revenue chart
+                    position: 'top',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10,
+                        font: {
+                            size: 11
+                        }
+                    }
                 },
                 tooltip: {
                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -222,6 +242,7 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
             scales: {
                 y: {
                     beginAtZero: true,
+                    stacked: chartKey === 'revenue', // Enable stacking for revenue chart
                     ticks: {
                         callback: function (value) {
                             if (chartKey === 'revenue') {
@@ -240,6 +261,7 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
                     }
                 },
                 x: {
+                    stacked: chartKey === 'revenue', // Enable stacking for revenue chart
                     ticks: {
                         font: {
                             size: 11
@@ -262,7 +284,7 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'USD',
+        currency: 'THB',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(amount);

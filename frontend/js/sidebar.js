@@ -17,6 +17,10 @@ class Sidebar {
                     <span class="nav-item-icon">📊</span>
                     <span class="nav-item-text">Dashboard</span>
                 </div>
+                <div class="nav-item ${page === 'services.html' ? 'active' : ''}" onclick="window.location.href='services.html'">
+                    <span class="nav-item-icon">🛠️</span>
+                    <span class="nav-item-text">Services</span>
+                </div>
                 <div class="nav-item ${page === 'reports.html' ? 'active' : ''}" onclick="window.location.href='reports.html'">
                     <span class="nav-item-icon">📈</span>
                     <span class="nav-item-text">Reports</span>
