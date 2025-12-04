@@ -85,6 +85,11 @@ body {
   padding: var(--spacing-lg);
 }
 
+/* For reports page only - full width layout */
+.app-container:has(.reports-main) {
+  grid-template-columns: 200px 1fr;
+}
+
 /* ===========================
    Left Sidebar - Navigation
    =========================== */
