@@ -23,7 +23,7 @@ class Sidebar {
                 </div>
                 <div class="nav-item" onclick="app.downloadBackup()">
                     <span class="nav-item-icon">⚙️</span>
-                    <span class="nav-item-text">BackUp Database</span>
+                    <span class="nav-item-text">Data BackUp</span>
                 </div>
             </nav>
             <div class="nav-footer">

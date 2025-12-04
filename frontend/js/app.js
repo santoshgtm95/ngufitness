@@ -10,6 +10,15 @@ class GymMembershipApp {
     await this.loadData();
     this.setupEventListeners();
     this.setDefaultDate();
+
+    // Handle window resize for responsive table/card view
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        this.renderCustomerTable();
+      }, 250);
+    });
   }
 
   async loadData() {
@@ -23,6 +32,23 @@ class GymMembershipApp {
   }
 
   setupEventListeners() {
+    // Hamburger menu toggle
+    const hamburgerMenu = document.getElementById('hamburgerMenu');
+    const navSidebar = document.querySelector('.nav-sidebar');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+
+    if (hamburgerMenu && navSidebar && mobileOverlay) {
+      const toggleMenu = () => {
+        hamburgerMenu.classList.toggle('active');
+        navSidebar.classList.toggle('active');
+        mobileOverlay.classList.toggle('active');
+        document.body.style.overflow = navSidebar.classList.contains('active') ? 'hidden' : '';
+      };
+
+      hamburgerMenu.addEventListener('click', toggleMenu);
+      mobileOverlay.addEventListener('click', toggleMenu);
+    }
+
     // Search functionality
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -521,48 +547,105 @@ class GymMembershipApp {
     const customers = customersToRender || this.customers;
 
     if (customers.length === 0) {
-      tbody.innerHTML = `
-                <tr>
-                    <td colspan="7" class="text-center text-muted" style="padding: 3rem;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">📋</div>
-                        <div>No customers found. Add your first customer to get started!</div>
-                    </td>
-                </tr>
-            `;
+      // Check if we're in mobile view
+      const isMobile = window.innerWidth <= 768;
+
+      if (isMobile) {
+        tbody.innerHTML = `
+          <div class="customer-card" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">📋</div>
+            <div>No customers found. Add your first customer to get started!</div>
+          </div>
+        `;
+      } else {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center text-muted" style="padding: 3rem;">
+              <div style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;">📋</div>
+              <div>No customers found. Add your first customer to get started!</div>
+            </td>
+          </tr>
+        `;
+      }
       return;
     }
 
-    tbody.innerHTML = customers.map(customer => {
-      // Use the latest membership for the main table status
-      const membership = customer.membership;
-      const status = this.getMembershipStatus(membership);
+    // Check if we're in mobile view
+    const isMobile = window.innerWidth <= 768;
 
-      // Row click opens details
-      return `
-                <tr onclick="app.showCustomerDetails('${customer.id}')" style="cursor: pointer;">
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 12px;">
-                            <strong>${this.escapeHtml(customer.name)}</strong>
-                        </div>
-                    </td>
-                    <td>${this.escapeHtml(customer.phone)}</td>
-                    <!-- <td>${this.escapeHtml(customer.address)}</td> -->
-                    <td>
-                        <span class="status-badge status-${status.class}">${status.text}</span>
-                    </td>
-                    <td>${membership ? this.getPackageLabel(membership.packageType) : '-'}</td>
-                    <td>${membership ? this.formatDate(membership.expireDate) : '-'}</td>
-                    <td onclick="event.stopPropagation()">
-                        <div class="table-actions">
-                            <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer Info">✏️</button>
-                            <button class="btn-icon" onclick="app.showEditMembershipModal('${customer.id}')" title="Edit Membership">📝</button>
-                            <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Renew Membership">🎫</button>
-                            <button class="btn-icon" onclick="app.deleteCustomer('${customer.id}')" title="Delete Customer">🗑️</button>
-                        </div>
-                    </td>
-                </tr>
-            `;
-    }).join('');
+    if (isMobile) {
+      // Render as cards for mobile
+      tbody.innerHTML = customers.map(customer => {
+        const membership = customer.membership;
+        const status = this.getMembershipStatus(membership);
+
+        return `
+          <div class="customer-card" onclick="app.showCustomerDetails('${customer.id}')">
+            <div class="customer-card-header">
+              <div class="customer-card-info">
+                <h3>${this.escapeHtml(customer.name)}</h3>
+                <p>${this.escapeHtml(customer.phone)}</p>
+              </div>
+              <span class="status-badge status-${status.class}">${status.text}</span>
+            </div>
+            <div class="customer-card-body">
+              <div class="customer-card-row">
+                <span class="customer-card-label">Package</span>
+                <span class="customer-card-value">${membership ? this.getPackageLabel(membership.packageType) : '-'}</span>
+              </div>
+              <div class="customer-card-row">
+                <span class="customer-card-label">Expires On</span>
+                <span class="customer-card-value">${membership ? this.formatDate(membership.expireDate) : '-'}</span>
+              </div>
+            </div>
+            <div class="customer-card-actions" onclick="event.stopPropagation()">
+              <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer">
+                ✏️ Edit
+              </button>
+              <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Renew">
+                🎫 Renew
+              </button>
+              <button class="btn-icon" onclick="app.deleteCustomer('${customer.id}')" title="Delete">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      // Render as table for desktop
+      tbody.innerHTML = customers.map(customer => {
+        // Use the latest membership for the main table status
+        const membership = customer.membership;
+        const status = this.getMembershipStatus(membership);
+
+        // Row click opens details
+        return `
+          <tr onclick="app.showCustomerDetails('${customer.id}')" style="cursor: pointer;">
+            <td>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <strong>${this.escapeHtml(customer.name)}</strong>
+              </div>
+            </td>
+            <td>${this.escapeHtml(customer.phone)}</td>
+            <!-- <td>${this.escapeHtml(customer.address)}</td> -->
+            <td>
+              <span class="status-badge status-${status.class}">${status.text}</span>
+            </td>
+            <td>${membership ? this.getPackageLabel(membership.packageType) : '-'}</td>
+            <td>${membership ? this.formatDate(membership.expireDate) : '-'}</td>
+            <td onclick="event.stopPropagation()">
+              <div class="table-actions">
+                <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer Info">✏️</button>
+                <button class="btn-icon" onclick="app.showEditMembershipModal('${customer.id}')" title="Edit Membership">📝</button>
+                <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Renew Membership">🎫</button>
+                <button class="btn-icon" onclick="app.deleteCustomer('${customer.id}')" title="Delete Customer">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
   }
 
   async renderExpirationAlerts() {
