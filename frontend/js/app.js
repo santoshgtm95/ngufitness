@@ -808,7 +808,8 @@ class GymMembershipApp {
         }
       }
 
-      doc.save(`Receipt_${customer.name.replace(/\s+/g, '_')}.pdf`);
+      // Open in new tab instead of downloading
+      window.open(doc.output('bloburl'), '_blank');
     } catch (error) {
       console.error('Error generating receipt:', error);
       alert('Failed to generate receipt. Please try again.');
