@@ -9,15 +9,6 @@ echo.
 REM Start backend server
 start "Backend Server - Port 3000" cmd /k "cd backend && npm start"
 
-REM Wait 3 seconds for backend to initialize
-timeout /t 3 /nobreak > nul
-
-REM Start frontend server (tries Python first, then npx)
-start "Frontend Server - Port 8080" cmd /k "python -m http.server 8080 || npx http-server -p 8080"
-
-REM Wait 2 seconds for frontend to start
-timeout /t 2 /nobreak > nul
-
 echo.
 echo ========================================
 echo  Servers Started Successfully!
@@ -30,7 +21,7 @@ echo Opening application in your browser...
 echo.
 
 REM Open the application in default browser
-start http://localhost:8080
+start http://localhost:3000
 
 echo.
 echo ========================================
