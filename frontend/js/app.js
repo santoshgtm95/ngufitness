@@ -661,12 +661,157 @@ class GymMembershipApp {
                 <button class="btn-icon" onclick="app.showEditCustomerModal('${customer.id}')" title="Edit Customer Info">✏️</button>
                 <button class="btn-icon" onclick="app.showEditMembershipModal('${customer.id}')" title="Edit Membership">📝</button>
                 <button class="btn-icon" onclick="app.showAddMembershipModal('${customer.id}')" title="Renew Membership">🎫</button>
+                <button class="btn-icon" onclick="app.generateReceipt('${customer.id}')" title="Generate Receipt">📄</button>
                 <button class="btn-icon" onclick="app.deleteCustomer('${customer.id}')" title="Delete Customer">🗑️</button>
               </div>
             </td>
           </tr>
         `;
       }).join('');
+    }
+  }
+
+  async generateReceipt(customerId) {
+    const customer = this.customers.find(c => c.id === customerId);
+    if (!customer) return;
+
+    const membership = customer.membership;
+    if (!membership) {
+      alert('No membership details found for this customer.');
+      return;
+    }
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Helper to add text
+      const addText = (text, x, y, options = {}) => {
+        doc.text(text, x, y, options);
+      };
+
+      // Helper to add line
+      const addLine = (x1, y1, x2, y2) => {
+        doc.line(x1, y1, x2, y2);
+      };
+
+      // Load Logo
+      const logoUrl = 'assets/logo.png';
+      let logoData = null;
+      try {
+        const response = await fetch(logoUrl);
+        const blob = await response.blob();
+        logoData = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        console.warn('Could not load logo for receipt', e);
+      }
+
+      // Title
+      doc.setFontSize(16);
+      doc.setFont('helvetica', 'bold');
+      addText('NGU Fitness Membership Contract Form', 105, 20, { align: 'center' });
+
+      // Member Information
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      addText('Member Information', 20, 40);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+
+      // Full Name
+      addText(`Full Name: ${customer.name}`, 20, 50);
+      addLine(40, 51, 100, 51); // Underline name
+
+      // Mobile Phone
+      addText(`Mobile Phone: ${customer.phone}`, 110, 50);
+      addLine(135, 51, 190, 51); // Underline phone
+
+      // Address
+      addText(`Address: ${customer.address}`, 20, 60);
+      addLine(35, 61, 190, 61); // Underline address
+
+      // Membership Details
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      addText('Membership Details', 20, 80);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+
+      // Term
+      addText(`Membership Term: ${this.getPackageLabel(membership.packageType)}`, 20, 90);
+      addLine(55, 91, 190, 91);
+
+      // Start Date
+      addText(`Start Date: ${this.formatDate(membership.startDate)}`, 20, 100);
+      addLine(40, 101, 80, 101);
+
+      // Expiry Date
+      addText(`Expiry Date: ${this.formatDate(membership.expireDate)}`, 110, 100);
+      addLine(135, 101, 175, 101);
+
+      // Payment
+      addText(`Payment: ${membership.payment} THB`, 20, 110);
+      addLine(40, 111, 80, 111);
+
+      // Terms
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      addText('Terms & Conditions Acknowledgement', 20, 130);
+
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      const terms = [
+        "I acknowledge that NGU Fitness is an unsupervised fitness center. I accept full responsibility for my use of the facility, equipment, and entering the premises at any time.",
+        "I understand and agree that NGU Fitness is not responsible for any injury, accident, harm, loss, or damage that occurs due to my own actions, misuse of equipment, negligence, health conditions, or failure to follow gym rules and safety guidelines.",
+        "I assume all risks associated with exercise, training, and use of the gym facilities.",
+        "I confirm that I have read, understood, and agree to all terms and conditions provided by NGU Fitness."
+      ];
+
+      let y = 140;
+      terms.forEach(term => {
+        const splitText = doc.splitTextToSize(term, 170);
+        doc.text(splitText, 20, y);
+        y += splitText.length * 5 + 3;
+      });
+
+      // Signatures
+      y += 10;
+      addText('Member Signature: _______________________', 20, y);
+      addText('Date: ___ / ___ / _____', 140, y);
+
+      y += 15;
+      addText('NGU Fitness Representative: _______________________', 20, y);
+      addText('Date: ___ / ___ / _____', 140, y);
+
+      // Under 18
+      y += 15;
+      doc.setFont('helvetica', 'bold');
+      addText('For Members Under 18', 20, y);
+
+      y += 10;
+      doc.setFont('helvetica', 'normal');
+      addText('Parent/Guardian Name: _______________________', 20, y);
+      addText('Signature: _______________________', 110, y);
+
+      // Logo at bottom
+      if (logoData) {
+        try {
+          doc.addImage(logoData, 'PNG', 80, y + 10, 50, 50);
+        } catch (err) {
+          console.error('Error adding logo to PDF:', err);
+        }
+      }
+
+      doc.save(`Receipt_${customer.name.replace(/\s+/g, '_')}.pdf`);
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+      alert('Failed to generate receipt. Please try again.');
     }
   }
 
