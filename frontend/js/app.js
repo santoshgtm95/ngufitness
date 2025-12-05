@@ -529,12 +529,15 @@ class GymMembershipApp {
     if (!tbody) return;
 
     if (memberships.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No membership history found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No membership history found</td></tr>`;
       return;
     }
 
     tbody.innerHTML = memberships.map(m => {
       const status = this.getMembershipStatus(m);
+      const paymentStatusBadge = this.getPaymentStatusBadge(m.payment_status || 'paid');
+      const description = m.description || '-';
+
       return `
                 <tr>
                     <td>${this.getPackageLabel(m.packageType)}</td>
@@ -542,9 +545,20 @@ class GymMembershipApp {
                     <td>${this.formatDate(m.expireDate)}</td>
                     <td><span class="status-badge status-${status.class}">${status.text}</span></td>
                     <td>${m.payment}฿</td>
+                    <td>${paymentStatusBadge}</td>
+                    <td><span title="${description}" style="max-width: 150px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${description}</span></td>
                 </tr>
             `;
     }).join('');
+  }
+
+  getPaymentStatusBadge(status) {
+    const badges = {
+      'paid': '<span class="status-badge status-active">Paid</span>',
+      'unpaid': '<span class="status-badge status-expired">Unpaid</span>',
+      'partially_paid': '<span class="status-badge status-expiring">Partially Paid</span>'
+    };
+    return badges[status] || badges['paid'];
   }
 
   // Rendering

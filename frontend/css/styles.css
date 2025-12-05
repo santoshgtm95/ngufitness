@@ -667,6 +667,11 @@ tbody td {
   animation: slideUp var(--transition-slow);
 }
 
+#customerDetailsModal .modal-content {
+  width: 70%;
+  max-width: none;
+}
+
 @keyframes slideUp {
   from {
     opacity: 0;
@@ -792,7 +797,7 @@ tbody td {
   accent-color: var(--accent-primary);
 }
 
-.radio-label input[type="radio"]:checked + span {
+.radio-label input[type="radio"]:checked+span {
   font-weight: 600;
   color: var(--accent-primary);
 }
