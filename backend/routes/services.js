@@ -61,7 +61,7 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/services - Create new service
 router.post('/', async (req, res, next) => {
     try {
-        const { service_name, price, service_date, customer_id } = req.body;
+        const { service_name, price, service_date, customer_id, payment_status } = req.body;
 
         // Validation
         if (!service_name || !price || !service_date) {
@@ -80,6 +80,16 @@ router.post('/', async (req, res, next) => {
             });
         }
 
+        // Validate payment_status
+        const validStatuses = ['paid', 'unpaid', 'partially_paid'];
+        const paymentStatus = payment_status || 'paid';
+        if (!validStatuses.includes(paymentStatus)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Payment status must be one of: paid, unpaid, partially_paid'
+            });
+        }
+
         // Validate customer exists if customer_id is provided
         if (customer_id) {
             const customer = db.prepare('SELECT id FROM customers WHERE id = ?').get(customer_id);
@@ -94,8 +104,8 @@ router.post('/', async (req, res, next) => {
         const id = generateId();
 
         db.prepare(
-            'INSERT INTO services (id, service_name, price, service_date, customer_id) VALUES (?, ?, ?, ?, ?)'
-        ).run(id, service_name, priceNum, service_date, customer_id || null);
+            'INSERT INTO services (id, service_name, price, service_date, customer_id, payment_status) VALUES (?, ?, ?, ?, ?, ?)'
+        ).run(id, service_name, priceNum, service_date, customer_id || null, paymentStatus);
 
         const service = db.prepare(`
             SELECT 
@@ -119,7 +129,7 @@ router.post('/', async (req, res, next) => {
 // PUT /api/services/:id - Update service
 router.put('/:id', async (req, res, next) => {
     try {
-        const { service_name, price, service_date, customer_id } = req.body;
+        const { service_name, price, service_date, customer_id, payment_status } = req.body;
 
         // Validation
         if (!service_name || !price || !service_date) {
@@ -150,8 +160,8 @@ router.put('/:id', async (req, res, next) => {
         }
 
         const result = db.prepare(
-            'UPDATE services SET service_name = ?, price = ?, service_date = ?, customer_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
-        ).run(service_name, priceNum, service_date, customer_id || null, req.params.id);
+            'UPDATE services SET service_name = ?, price = ?, service_date = ?, customer_id = ?, payment_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
+        ).run(service_name, priceNum, service_date, customer_id || null, paymentStatus, req.params.id);
 
         if (result.changes === 0) {
             return res.status(404).json({

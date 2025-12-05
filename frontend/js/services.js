@@ -182,7 +182,8 @@ class ServicesApp {
             service_name: document.getElementById('serviceName').value.trim(),
             price: parseFloat(document.getElementById('servicePrice').value),
             service_date: document.getElementById('serviceDate').value,
-            customer_id: document.getElementById('serviceCustomer').value || null
+            customer_id: document.getElementById('serviceCustomer').value || null,
+            payment_status: document.getElementById('servicePaymentStatus').value
         };
 
         // Validation

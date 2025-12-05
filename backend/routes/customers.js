@@ -46,6 +46,8 @@ router.get('/', async (req, res, next) => {
         m.expire_date,
         m.package_type,
         m.payment,
+        m.payment_status,
+        m.description,
         m.created_at as membership_created_at
       FROM customers c
       LEFT JOIN memberships m ON c.id = m.customer_id
@@ -78,6 +80,8 @@ router.get('/', async (req, res, next) => {
                     expireDate: row.expire_date,
                     packageType: row.package_type,
                     payment: row.payment,
+                    payment_status: row.payment_status,
+                    description: row.description,
                     createdAt: row.membership_created_at
                 });
             }

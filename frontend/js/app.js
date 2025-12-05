@@ -347,6 +347,8 @@ class GymMembershipApp {
     document.getElementById('membershipPackage').value = customer.membership.packageType;
     document.getElementById('membershipExpireDate').value = customer.membership.expireDate;
     document.getElementById('membershipPayment').value = customer.membership.payment || 0;
+    document.getElementById('membershipPaymentStatus').value = customer.membership.payment_status || 'paid';
+    document.getElementById('membershipDescription').value = customer.membership.description || '';
 
     document.getElementById('membershipModal').classList.add('active');
   }
@@ -425,6 +427,8 @@ class GymMembershipApp {
     const packageType = document.getElementById('membershipPackage').value;
     const expireDate = document.getElementById('membershipExpireDate').value;
     const payment = document.getElementById('membershipPayment').value;
+    const paymentStatus = document.getElementById('membershipPaymentStatus').value;
+    const description = document.getElementById('membershipDescription').value.trim();
 
     if (!customerId || !startDate || !packageType || !payment) {
       alert('Please fill in all required fields');
@@ -449,7 +453,9 @@ class GymMembershipApp {
             startDate,
             expireDate,
             packageType,
-            payment: paymentAmount
+            payment: paymentAmount,
+            payment_status: paymentStatus,
+            description
           })
         });
       } else {
@@ -462,7 +468,9 @@ class GymMembershipApp {
             startDate,
             expireDate,
             packageType,
-            payment: paymentAmount
+            payment: paymentAmount,
+            payment_status: paymentStatus,
+            description
           })
         });
       }
