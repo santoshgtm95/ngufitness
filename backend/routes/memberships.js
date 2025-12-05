@@ -125,7 +125,8 @@ router.post('/', async (req, res, next) => {
         }
 
         // Create new membership
-        const id = generateId();
+        // Use provided ID (sync) or generate new one
+        const id = req.body.id || generateId();
 
         db.prepare(
             'INSERT INTO memberships (id, customer_id, start_date, expire_date, package_type, payment, payment_status, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
@@ -135,7 +136,7 @@ router.post('/', async (req, res, next) => {
 
         // Broadcast change
         if (!req.headers['x-sync-source']) {
-            syncService.broadcastChange('POST', req.originalUrl, req.body);
+            syncService.broadcastChange('POST', req.originalUrl, { ...req.body, id });
         }
 
         res.status(201).json({

@@ -148,7 +148,8 @@ router.post('/', upload.single('image'), async (req, res, next) => {
             });
         }
 
-        const id = generateId();
+        // Use provided ID (sync) or generate new one
+        const id = req.body.id || generateId();
 
         db.prepare('INSERT INTO customers (id, name, phone, address, image) VALUES (?, ?, ?, ?, ?)').run(id, name, phone, address, image);
 
@@ -156,7 +157,7 @@ router.post('/', upload.single('image'), async (req, res, next) => {
 
         // Broadcast change
         if (!req.headers['x-sync-source']) {
-            syncService.broadcastChange('POST', req.originalUrl, req.body);
+            syncService.broadcastChange('POST', req.originalUrl, { ...req.body, id });
         }
 
         res.status(201).json({
