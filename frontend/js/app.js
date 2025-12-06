@@ -8,6 +8,7 @@ class GymMembershipApp {
 
   async init() {
     await this.loadData();
+    // await this.loadSyncSettings(); // Moved to sync.js
     this.setupEventListeners();
     this.setDefaultDate();
 
@@ -725,11 +726,11 @@ class GymMembershipApp {
 
       // Full Name
       addText(`Full Name: ${customer.name}`, 20, 50);
-      addLine(40, 51, 100, 51); // Underline name
+      addLine(37, 51, 100, 51); // Underline name
 
       // Mobile Phone
       addText(`Mobile Phone: ${customer.phone}`, 110, 50);
-      addLine(135, 51, 190, 51); // Underline phone
+      addLine(133, 51, 190, 51); // Underline phone
 
       // Address
       addText(`Address: ${customer.address}`, 20, 60);
@@ -745,19 +746,19 @@ class GymMembershipApp {
 
       // Term
       addText(`Membership Term: ${this.getPackageLabel(membership.packageType)}`, 20, 90);
-      addLine(55, 91, 190, 91);
+      addLine(50, 91, 190, 91);
 
       // Start Date
       addText(`Start Date: ${this.formatDate(membership.startDate)}`, 20, 100);
-      addLine(40, 101, 80, 101);
+      addLine(38, 101, 80, 101);
 
       // Expiry Date
       addText(`Expiry Date: ${this.formatDate(membership.expireDate)}`, 110, 100);
-      addLine(135, 101, 175, 101);
+      addLine(130, 101, 175, 101);
 
       // Payment
       addText(`Payment: ${membership.payment} THB`, 20, 110);
-      addLine(40, 111, 80, 111);
+      addLine(35, 111, 80, 111);
 
       // Terms
       doc.setFontSize(12);
@@ -815,6 +816,8 @@ class GymMembershipApp {
       alert('Failed to generate receipt. Please try again.');
     }
   }
+
+
 
   async renderExpirationAlerts() {
     const alertList = document.getElementById('alertList');

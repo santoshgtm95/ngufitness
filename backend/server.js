@@ -238,6 +238,7 @@ app.use('/api/customers', customersRouter);
 app.use('/api/memberships', membershipsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/services', servicesRouter);
+app.use('/api/settings', require('./routes/settings'));
 
 // 404 handler
 app.use((req, res) => {

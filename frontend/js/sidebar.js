@@ -25,6 +25,10 @@ class Sidebar {
                     <span class="nav-item-icon">📈</span>
                     <span class="nav-item-text">Reports</span>
                 </div>
+                <div class="nav-item" onclick="syncApp.showSyncSettingsModal()">
+                    <span class="nav-item-icon">🔄</span>
+                    <span class="nav-item-text">Sync Settings</span>
+                </div>
                 <div class="nav-item" onclick="app.downloadBackup()">
                     <span class="nav-item-icon">⚙️</span>
                     <span class="nav-item-text">Data BackUp</span>

@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/database');
 const multer = require('multer');
 const path = require('path');
+const syncService = require('../services/syncService');
 
 // Configure multer for this route
 const storage = multer.diskStorage({
@@ -153,6 +154,11 @@ router.post('/', upload.single('image'), async (req, res, next) => {
 
         const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
 
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('POST', req.originalUrl, req.body);
+        }
+
         res.status(201).json({
             success: true,
             data: customer
@@ -198,6 +204,11 @@ router.put('/:id', upload.single('image'), async (req, res, next) => {
 
         const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(req.params.id);
 
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('PUT', req.originalUrl, req.body);
+        }
+
         res.json({
             success: true,
             data: customer
@@ -217,6 +228,11 @@ router.delete('/:id', async (req, res, next) => {
                 success: false,
                 error: 'Customer not found'
             });
+        }
+
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('DELETE', req.originalUrl, {});
         }
 
         res.json({

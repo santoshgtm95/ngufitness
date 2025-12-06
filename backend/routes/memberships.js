@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const syncService = require('../services/syncService');
 
 // Generate unique ID
 const generateId = () => {
@@ -132,6 +133,11 @@ router.post('/', async (req, res, next) => {
 
         const newMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
 
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('POST', req.originalUrl, req.body);
+        }
+
         res.status(201).json({
             success: true,
             data: newMembership,
@@ -199,6 +205,11 @@ router.put('/:id', async (req, res, next) => {
 
         const updatedMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
 
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('PUT', req.originalUrl, req.body);
+        }
+
         res.json({
             success: true,
             data: updatedMembership,
@@ -219,6 +230,11 @@ router.delete('/:id', async (req, res, next) => {
                 success: false,
                 error: 'Membership not found'
             });
+        }
+
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('DELETE', req.originalUrl, {});
         }
 
         res.json({

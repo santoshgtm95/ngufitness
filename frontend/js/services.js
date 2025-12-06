@@ -166,6 +166,7 @@ class ServicesApp {
         document.getElementById('servicePrice').value = service.price;
         document.getElementById('serviceDate').value = service.service_date;
         document.getElementById('serviceCustomer').value = service.customer_id || '';
+        document.getElementById('servicePaymentStatus').value = service.payment_status || 'paid';
         document.getElementById('serviceModal').classList.add('active');
     }
 

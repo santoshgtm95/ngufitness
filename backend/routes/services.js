@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const syncService = require('../services/syncService');
 
 // Generate unique ID
 const generateId = () => {
@@ -117,6 +118,11 @@ router.post('/', async (req, res, next) => {
             WHERE s.id = ?
         `).get(id);
 
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('POST', req.originalUrl, req.body);
+        }
+
         res.status(201).json({
             success: true,
             data: service
@@ -159,6 +165,16 @@ router.put('/:id', async (req, res, next) => {
             }
         }
 
+        // Validate payment_status
+        const validStatuses = ['paid', 'unpaid', 'partially_paid'];
+        const paymentStatus = payment_status || 'paid';
+        if (!validStatuses.includes(paymentStatus)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Payment status must be one of: paid, unpaid, partially_paid'
+            });
+        }
+
         const result = db.prepare(
             'UPDATE services SET service_name = ?, price = ?, service_date = ?, customer_id = ?, payment_status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
         ).run(service_name, priceNum, service_date, customer_id || null, paymentStatus, req.params.id);
@@ -180,6 +196,11 @@ router.put('/:id', async (req, res, next) => {
             WHERE s.id = ?
         `).get(req.params.id);
 
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('PUT', req.originalUrl, req.body);
+        }
+
         res.json({
             success: true,
             data: service
@@ -199,6 +220,11 @@ router.delete('/:id', async (req, res, next) => {
                 success: false,
                 error: 'Service not found'
             });
+        }
+
+        // Broadcast change
+        if (!req.headers['x-sync-source']) {
+            syncService.broadcastChange('DELETE', req.originalUrl, {});
         }
 
         res.json({
