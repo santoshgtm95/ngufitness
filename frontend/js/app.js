@@ -655,6 +655,7 @@ class GymMembershipApp {
             <td>
               <span class="status-badge status-${status.class}">${status.text}</span>
             </td>
+            <td>${membership ? this.getPaymentStatusBadge(membership.payment_status || 'paid') : '-'}</td>
             <td>${membership ? this.getPackageLabel(membership.packageType) : '-'}</td>
             <td>${membership ? this.formatDate(membership.expireDate) : '-'}</td>
             <td onclick="event.stopPropagation()">
