@@ -75,7 +75,7 @@ router.get('/', async (req, res, next) => {
 // POST /api/memberships - Create or update membership for a customer
 router.post('/', async (req, res, next) => {
     try {
-        const { customerId, startDate, expireDate, packageType, payment, payment_status, description } = req.body;
+        const { customerId, startDate, expireDate, packageType, payment, payment_status, description, extraDays } = req.body;
 
         // Validation
         if (!customerId || !startDate || !expireDate || !packageType) {
@@ -114,6 +114,15 @@ router.post('/', async (req, res, next) => {
             });
         }
 
+        // Validate extra_days (optional, must be non-negative integer)
+        const extraDaysValue = parseInt(extraDays) || 0;
+        if (extraDaysValue < 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Extra days must be a non-negative number'
+            });
+        }
+
         // Verify customer exists
         const customer = db.prepare('SELECT id FROM customers WHERE id = ?').get(customerId);
 
@@ -129,8 +138,8 @@ router.post('/', async (req, res, next) => {
         const id = req.body.id || generateId();
 
         db.prepare(
-            'INSERT INTO memberships (id, customer_id, start_date, expire_date, package_type, payment, payment_status, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        ).run(id, customerId, startDate, expireDate, packageType, paymentAmount, paymentStatus, description || '');
+            'INSERT INTO memberships (id, customer_id, start_date, expire_date, package_type, payment, payment_status, description, extra_days) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).run(id, customerId, startDate, expireDate, packageType, paymentAmount, paymentStatus, description || '', extraDaysValue);
 
         const newMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
 
@@ -153,7 +162,7 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { startDate, expireDate, packageType, payment, payment_status, description } = req.body;
+        const { startDate, expireDate, packageType, payment, payment_status, description, extraDays } = req.body;
 
         // Validation
         if (!startDate || !expireDate || !packageType) {
@@ -189,6 +198,15 @@ router.put('/:id', async (req, res, next) => {
             });
         }
 
+        // Validate extra_days (optional, must be non-negative integer)
+        const extraDaysValue = parseInt(extraDays) || 0;
+        if (extraDaysValue < 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'Extra days must be a non-negative number'
+            });
+        }
+
         // Verify membership exists
         const existingMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
 
@@ -201,8 +219,8 @@ router.put('/:id', async (req, res, next) => {
 
         // Update membership
         db.prepare(
-            'UPDATE memberships SET start_date = ?, expire_date = ?, package_type = ?, payment = ?, payment_status = ?, description = ? WHERE id = ?'
-        ).run(startDate, expireDate, packageType, paymentAmount, paymentStatus, description || '', id);
+            'UPDATE memberships SET start_date = ?, expire_date = ?, package_type = ?, payment = ?, payment_status = ?, description = ?, extra_days = ? WHERE id = ?'
+        ).run(startDate, expireDate, packageType, paymentAmount, paymentStatus, description || '', extraDaysValue, id);
 
         const updatedMembership = db.prepare('SELECT * FROM memberships WHERE id = ?').get(id);
 

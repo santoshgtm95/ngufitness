@@ -100,6 +100,13 @@ class GymMembershipApp {
       });
     }
 
+    const membershipExtraDays = document.getElementById('membershipExtraDays');
+    if (membershipExtraDays) {
+      membershipExtraDays.addEventListener('input', () => {
+        this.calculateExpirationDate();
+      });
+    }
+
     // Image preview
     const customerImageInput = document.getElementById('customerImageInput');
     if (customerImageInput) {
@@ -314,6 +321,7 @@ class GymMembershipApp {
       if (customer && customer.membership) {
         document.getElementById('membershipPackage').value = customer.membership.packageType;
         document.getElementById('membershipPayment').value = customer.membership.payment || 0; // Show previous payment as reference
+        document.getElementById('membershipExtraDays').value = customer.membership.extra_days || 0; // Pre-fill extra days from previous membership
       }
       this.setDefaultDate(); // Always set start date to today for new/renew
       this.calculateExpirationDate();
@@ -350,6 +358,10 @@ class GymMembershipApp {
     document.getElementById('membershipPayment').value = customer.membership.payment || 0;
     document.getElementById('membershipPaymentStatus').value = customer.membership.payment_status || 'paid';
     document.getElementById('membershipDescription').value = customer.membership.description || '';
+    document.getElementById('membershipExtraDays').value = customer.membership.extra_days || 0;
+
+    // Trigger calculation to show duration
+    this.calculateExpirationDate();
 
     document.getElementById('membershipModal').classList.add('active');
   }
@@ -376,28 +388,79 @@ class GymMembershipApp {
   calculateExpirationDate() {
     const startDate = document.getElementById('membershipStartDate').value;
     const packageType = document.getElementById('membershipPackage').value;
+    const extraDaysInput = document.getElementById('membershipExtraDays');
+    const extraDays = parseInt(extraDaysInput?.value) || 0;
 
     if (!startDate || !packageType) {
       const expireDateInput = document.getElementById('membershipExpireDate');
       if (expireDateInput) expireDateInput.value = '';
+      const durationDisplay = document.getElementById('membershipDurationDisplay');
+      if (durationDisplay) durationDisplay.textContent = '';
       return;
     }
 
     const start = new Date(startDate);
     let expireDate = new Date(start);
+    let baseDays = 0;
 
     switch (packageType) {
-      case '1day': expireDate.setDate(expireDate.getDate() + 1); break;
-      case '2weeks': expireDate.setDate(expireDate.getDate() + 14); break;
-      case '1month': expireDate.setMonth(expireDate.getMonth() + 1); break;
-      case '3months': expireDate.setMonth(expireDate.getMonth() + 3); break;
-      case '6months': expireDate.setMonth(expireDate.getMonth() + 6); break;
+      case '1day':
+        baseDays = 1;
+        expireDate.setDate(expireDate.getDate() + 1);
+        break;
+      case '2weeks':
+        baseDays = 14;
+        expireDate.setDate(expireDate.getDate() + 14);
+        break;
+      case '1month':
+        baseDays = 30;
+        expireDate.setMonth(expireDate.getMonth() + 1);
+        break;
+      case '3months':
+        baseDays = 90;
+        expireDate.setMonth(expireDate.getMonth() + 3);
+        break;
+      case '6months':
+        baseDays = 180;
+        expireDate.setMonth(expireDate.getMonth() + 6);
+        break;
       case '12months':
       case '12months_couple':
-        expireDate.setFullYear(expireDate.getFullYear() + 1); break;
+        baseDays = 365;
+        expireDate.setFullYear(expireDate.getFullYear() + 1);
+        break;
+    }
+
+    // Add extra days
+    if (extraDays > 0) {
+      expireDate.setDate(expireDate.getDate() + extraDays);
     }
 
     document.getElementById('membershipExpireDate').value = expireDate.toISOString().split('T')[0];
+
+    // Calculate and display total duration
+    const totalDays = baseDays + extraDays;
+    const durationDisplay = document.getElementById('membershipDurationDisplay');
+
+    if (durationDisplay) {
+      if (extraDays > 0) {
+        const totalMonths = Math.floor(totalDays / 30);
+        const remainingDays = totalDays % 30;
+
+        let durationText = '';
+        if (totalMonths > 0 && remainingDays > 0) {
+          durationText = `Total Duration: ${totalMonths} month${totalMonths > 1 ? 's' : ''} ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+        } else if (totalMonths > 0) {
+          durationText = `Total Duration: ${totalMonths} month${totalMonths > 1 ? 's' : ''}`;
+        } else {
+          durationText = `Total Duration: ${totalDays} day${totalDays > 1 ? 's' : ''}`;
+        }
+
+        durationDisplay.textContent = `${durationText} (${this.getPackageLabel(packageType)} + ${extraDays} bonus days)`;
+      } else {
+        durationDisplay.textContent = '';
+      }
+    }
   }
 
   updatePaymentAmount() {
@@ -430,6 +493,7 @@ class GymMembershipApp {
     const payment = document.getElementById('membershipPayment').value;
     const paymentStatus = document.getElementById('membershipPaymentStatus').value;
     const description = document.getElementById('membershipDescription').value.trim();
+    const extraDays = parseInt(document.getElementById('membershipExtraDays').value) || 0;
 
     if (!customerId || !startDate || !packageType || !payment) {
       alert('Please fill in all required fields');
@@ -456,7 +520,8 @@ class GymMembershipApp {
             packageType,
             payment: paymentAmount,
             payment_status: paymentStatus,
-            description
+            description,
+            extraDays
           })
         });
       } else {
@@ -471,7 +536,8 @@ class GymMembershipApp {
             packageType,
             payment: paymentAmount,
             payment_status: paymentStatus,
-            description
+            description,
+            extraDays
           })
         });
       }
@@ -530,7 +596,7 @@ class GymMembershipApp {
     if (!tbody) return;
 
     if (memberships.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">No membership history found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted">No membership history found</td></tr>`;
       return;
     }
 
@@ -538,12 +604,14 @@ class GymMembershipApp {
       const status = this.getMembershipStatus(m);
       const paymentStatusBadge = this.getPaymentStatusBadge(m.payment_status || 'paid');
       const description = m.description || '-';
+      const extraDays = m.extra_days || 0;
 
       return `
                 <tr>
                     <td>${this.getPackageLabel(m.packageType)}</td>
                     <td>${this.formatDate(m.startDate)}</td>
                     <td>${this.formatDate(m.expireDate)}</td>
+                    <td>${extraDays} days</td>
                     <td><span class="status-badge status-${status.class}">${status.text}</span></td>
                     <td>${m.payment}฿</td>
                     <td>${paymentStatusBadge}</td>
@@ -746,7 +814,11 @@ class GymMembershipApp {
       doc.setFont('helvetica', 'normal');
 
       // Term
-      addText(`Membership Term: ${this.getPackageLabel(membership.packageType)}`, 20, 90);
+      const extraDays = membership.extra_days || 0;
+      const termText = extraDays > 0
+        ? `${this.getPackageLabel(membership.packageType)} (${extraDays} Days Extra)`
+        : this.getPackageLabel(membership.packageType);
+      addText(`Membership Term: ${termText}`, 20, 90);
       addLine(50, 91, 190, 91);
 
       // Start Date

@@ -49,6 +49,7 @@ router.get('/', async (req, res, next) => {
         m.payment,
         m.payment_status,
         m.description,
+        m.extra_days,
         m.created_at as membership_created_at
       FROM customers c
       LEFT JOIN memberships m ON c.id = m.customer_id
@@ -83,6 +84,7 @@ router.get('/', async (req, res, next) => {
                     payment: row.payment,
                     payment_status: row.payment_status,
                     description: row.description,
+                    extra_days: row.extra_days,
                     createdAt: row.membership_created_at
                 });
             }

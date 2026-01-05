@@ -166,6 +166,7 @@
                 <th>Package</th>
                 <th>Start Date</th>
                 <th>Expire Date</th>
+                <th>Extra Days</th>
                 <th>Status</th>
                 <th>Payment</th>
                 <th>Payment Status</th>
@@ -221,7 +222,13 @@
           <label for="membershipExpireDate">Expiration Date</label>
           <input type="date" id="membershipExpireDate" readonly
             style="background: var(--bg-secondary); cursor: not-allowed;">
-          <small class="text-muted">Auto-calculated based on package type</small>
+          <small class="text-muted">Auto-calculated based on package type and extra days</small>
+          <div id="membershipDurationDisplay" style="margin-top: 0.5rem; font-weight: 600; color: var(--primary-color);"></div>
+        </div>
+        <div class="form-group">
+          <label for="membershipExtraDays">Promotional Extra Days</label>
+          <input type="number" id="membershipExtraDays" value="0" min="0" step="1" placeholder="Enter extra days (e.g., 90)">
+          <small class="text-muted">Additional promotional days added to the package</small>
         </div>
         <div class="form-row">
           <div class="form-group">
