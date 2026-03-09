@@ -1,4 +1,4 @@
-# 🏋️ NGU Fitness Membership Management System
+# 🏋️ FITLAB Membership Management System
 
 A full-stack web application for managing gym memberships with customer registration, membership tracking, and automatic expiration alerts.
 

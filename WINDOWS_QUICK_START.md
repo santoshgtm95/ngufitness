@@ -1,4 +1,4 @@
-# 🏋️ NGU Fitness - Quick Start Guide for Windows
+# 🏋️ FITLAB Fitness - Quick Start Guide for Windows
 
 ## 🚀 One-Click Startup (Easiest Method)
 
@@ -9,7 +9,7 @@
    - A shortcut will appear on your Desktop
 
 2. **Start the application**:
-   - Double-click the **"NGU Fitness"** shortcut on your Desktop
+   - Double-click the **"FITLAB Fitness"** shortcut on your Desktop
    - The application will automatically:
      - Install dependencies (first time only)
      - Start the server

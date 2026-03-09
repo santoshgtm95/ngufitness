@@ -783,7 +783,7 @@ class GymMembershipApp {
       // Title
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      addText('NGU Fitness Membership Contract Form', 105, 20, { align: 'center' });
+      addText('FITLAB Fitness Membership Contract Form', 105, 20, { align: 'center' });
 
       // Member Information
       doc.setFontSize(12);
@@ -841,10 +841,10 @@ class GymMembershipApp {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       const terms = [
-        "I acknowledge that NGU Fitness is an unsupervised fitness center. I accept full responsibility for my use of the facility, equipment, and entering the premises at any time.",
-        "I understand and agree that NGU Fitness is not responsible for any injury, accident, harm, loss, or damage that occurs due to my own actions, misuse of equipment, negligence, health conditions, or failure to follow gym rules and safety guidelines.",
+        "I acknowledge that FITLAB Fitness is an unsupervised fitness center. I accept full responsibility for my use of the facility, equipment, and entering the premises at any time.",
+        "I understand and agree that FITLAB Fitness is not responsible for any injury, accident, harm, loss, or damage that occurs due to my own actions, misuse of equipment, negligence, health conditions, or failure to follow gym rules and safety guidelines.",
         "I assume all risks associated with exercise, training, and use of the gym facilities.",
-        "I confirm that I have read, understood, and agree to all terms and conditions provided by NGU Fitness."
+        "I confirm that I have read, understood, and agree to all terms and conditions provided by FITLAB Fitness."
       ];
 
       let y = 140;
@@ -860,7 +860,7 @@ class GymMembershipApp {
       addText('Date: ___ / ___ / _____', 140, y);
 
       y += 15;
-      addText('NGU Fitness Representative: _______________________', 20, y);
+      addText('FITLAB Fitness Representative: _______________________', 20, y);
       addText('Date: ___ / ___ / _____', 140, y);
 
       // Under 18

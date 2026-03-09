@@ -21,7 +21,7 @@ This project includes several documentation files for different purposes:
 ## 🚀 Quick Start
 
 ### Windows 10
-1. Copy the `NGU` folder to your Windows machine
+1. Copy the `FITLAB` folder to your Windows machine
 2. Open the folder and double-click **`start-app.bat`**
 3. Browser opens automatically to http://localhost:8080
 
@@ -74,7 +74,7 @@ python3 -m http.server 8080
 ## 📦 What's Included
 
 ```
-NGU/
+FITLAB/
 ├── start-app.bat          # Windows startup script
 ├── WINDOWS_SETUP.md       # Windows guide
 ├── HOW_TO_USE.md          # macOS/Linux guide

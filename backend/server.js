@@ -102,7 +102,7 @@ app.get('/api/backup', (req, res) => {
 
         // Format data as text
         let textContent = '='.repeat(80) + '\n';
-        textContent += 'NGU FITNESS - DATABASE BACKUP\n';
+        textContent += 'FITLAB FITNESS - DATABASE BACKUP\n';
         textContent += 'Generated: ' + new Date().toISOString() + '\n';
         textContent += '='.repeat(80) + '\n\n';
 

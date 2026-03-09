@@ -1,13 +1,13 @@
 @echo off
 REM ========================================
-REM  NGU Fitness - One-Click Startup
+REM  FITLAB Fitness - One-Click Startup
 REM ========================================
 
-title NGU Fitness - Starting Application...
+title FITLAB Fitness - Starting Application...
 
 echo.
 echo ========================================
-echo  NGU Fitness Membership Management
+echo  FITLAB Fitness Membership Management
 echo ========================================
 echo.
 echo Starting application...
@@ -48,7 +48,7 @@ if not exist "node_modules" (
 REM Start the backend server
 echo Starting server...
 echo.
-start "NGU Fitness Server" cmd /k "title NGU Fitness Server && npm start"
+start "FITLAB Fitness Server" cmd /k "title FITLAB Fitness Server && npm start"
 
 REM Wait for server to start
 timeout /t 5 /nobreak >nul
@@ -67,7 +67,7 @@ echo.
 echo The server is running in a separate window.
 echo.
 echo To stop the application:
-echo   - Close the "NGU Fitness Server" window
+echo   - Close the "FITLAB Fitness Server" window
 echo   - Or press Ctrl+C in that window
 echo.
 echo This window will close in 5 seconds...

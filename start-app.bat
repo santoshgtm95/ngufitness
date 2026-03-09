@@ -1,6 +1,6 @@
 @echo off
 echo ========================================
-echo  NGU Fitness Membership Management System
+echo  FITLAB Fitness Membership Management System
 echo ========================================
 echo.
 echo Starting servers...

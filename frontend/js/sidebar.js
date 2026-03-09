@@ -36,7 +36,7 @@ class Sidebar {
             </nav>
             <div class="nav-footer">
                 <p>v1.0.0</p>
-                <p>© 2025 NGU Fitness</p>
+                <p>© 2026 FITLAB Fitness</p>
             </div>
         `;
 

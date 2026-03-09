@@ -1,7 +1,7 @@
 {
   "name": "gym-membership-backend",
   "version": "1.0.0",
-  "description": "Backend API for NGU Fitness Membership Management System",
+  "description": "Backend API for FITLAB Fitness Membership Management System",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
