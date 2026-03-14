@@ -119,7 +119,7 @@ class ServicesApp {
             <tr>
                 <td><strong>${this.escapeHtml(service.service_name)}</strong></td>
                 <td>${service.customer_name ? this.escapeHtml(service.customer_name) : '<em style="color: var(--text-secondary);">No customer</em>'}</td>
-                <td><strong style="color: var(--primary);">${parseInt(service.price)}฿</strong></td>
+                <td><strong style="color: var(--primary);">${parseInt(service.price)}Nu</strong></td>
                 <td>${this.formatDate(service.service_date)}</td>
                 <td>
                     <div style="display: flex; gap: 8px;">

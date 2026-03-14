@@ -470,13 +470,12 @@ class GymMembershipApp {
     if (!paymentInput) return;
 
     const prices = {
-      '1day': 200,
-      '2weeks': 1000,
-      '1month': 2500,
-      '3months': 6000,
-      '6months': 8500,
-      '12months': 15000,
-      '12months_couple': 25000
+      '1day': 1000,
+      '1month': 5990,
+      '3months': 11990,
+      '6months': 16990,
+      '12months': 29990,
+      // '12months_couple': 25000
     };
 
     if (prices[packageType]) {
@@ -613,7 +612,7 @@ class GymMembershipApp {
                     <td>${this.formatDate(m.expireDate)}</td>
                     <td>${extraDays} days</td>
                     <td><span class="status-badge status-${status.class}">${status.text}</span></td>
-                    <td>${m.payment}฿</td>
+                    <td>${m.payment}Nu</td>
                     <td>${paymentStatusBadge}</td>
                     <td><span title="${description}" style="max-width: 150px; display: inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${description}</span></td>
                 </tr>
@@ -830,7 +829,7 @@ class GymMembershipApp {
       addLine(130, 101, 175, 101);
 
       // Payment
-      addText(`Payment: ${membership.payment} THB`, 20, 110);
+      addText(`Payment: ${membership.payment} Nu`, 20, 110);
       addLine(35, 111, 80, 111);
 
       // Terms
@@ -963,12 +962,12 @@ class GymMembershipApp {
   getPackageLabel(packageType) {
     const labels = {
       '1day': '1 Day',
-      '2weeks': '2 Weeks',
+      //    '2weeks': '2 Weeks',
       '1month': '1 Month',
       '3months': '3 Months',
       '6months': '6 Months',
       '12months': '12 Months',
-      '12months_couple': '12 Months Couple'
+      // '12months_couple': '12 Months Couple'
     };
     return labels[packageType] || packageType;
   }

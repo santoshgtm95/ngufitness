@@ -282,9 +282,7 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
 
 // Utility functions
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'THB',
+    return 'Nu ' + new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
     }).format(amount);
