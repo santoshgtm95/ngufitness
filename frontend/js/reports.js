@@ -3,6 +3,7 @@ const API_URL = 'http://localhost:3000/api';
 
 // Global state
 let currentPeriod = 'monthly';
+let currentYear = new Date().getFullYear();   // current year by default
 let charts = {
     membership: null,
     customer: null,
@@ -12,6 +13,7 @@ let charts = {
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     initializePeriodSelector();
+    initializeYearSelector();
     loadReports(currentPeriod);
 });
 
@@ -25,8 +27,37 @@ function initializePeriodSelector() {
             periodButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
+            // Show/hide year selector (not needed for 'yearly' view)
+            const yearSelector = document.getElementById('yearSelector');
+            if (btn.dataset.period === 'yearly') {
+                yearSelector.classList.add('hidden-selector');
+            } else {
+                yearSelector.classList.remove('hidden-selector');
+            }
+
             // Load new period data
             currentPeriod = btn.dataset.period;
+            loadReports(currentPeriod);
+        });
+    });
+}
+
+// Year selector initialization
+function initializeYearSelector() {
+    const thisYear = new Date().getFullYear();
+    const lastYear = thisYear - 1;
+
+    // Set labels with actual year numbers
+    document.getElementById('lastYearLabel').textContent = `${lastYear}`;
+    document.getElementById('currentYearLabel').textContent = `${thisYear}`;
+
+    const yearButtons = document.querySelectorAll('.year-btn');
+    yearButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            yearButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            currentYear = btn.dataset.year === 'last' ? lastYear : thisYear;
             loadReports(currentPeriod);
         });
     });
@@ -37,7 +68,13 @@ async function loadReports(period) {
     showLoading();
 
     try {
-        const response = await fetch(`${API_URL}/reports/${period}`);
+        let url = `${API_URL}/reports/${period}`;
+        // Pass year param for daily and monthly endpoints
+        if (period === 'daily' || period === 'monthly') {
+            url += `?year=${currentYear}`;
+        }
+
+        const response = await fetch(url);
         const data = await response.json();
 
         if (data.success) {
