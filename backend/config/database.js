@@ -1,8 +1,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-// Create or open SQLite database
-const dbPath = path.join(__dirname, '..', 'gym_membership.db');
+// When running inside Electron the DB_PATH env variable points to a writable
+// user-data directory (e.g. AppData\Roaming\FITLABFitness). Fall back to the
+// local file for normal development use.
+const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'gym_membership.db');
 const db = new Database(dbPath);
 
 // Enable foreign keys

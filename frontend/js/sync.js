@@ -1,4 +1,4 @@
-const SYNC_API_URL = 'http://localhost:3000/api';
+const SYNC_API_URL = '/api';
 
 class SyncManager {
     constructor() {

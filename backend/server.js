@@ -169,7 +169,7 @@ app.get('/api/backup', (req, res) => {
         textContent += '='.repeat(80) + '\n';
 
         // Set headers for ZIP download
-        const filename = `ngu_fitness_backup_${new Date().toISOString().split('T')[0]}.zip`;
+        const filename = `fitlab_fitness_backup_${new Date().toISOString().split('T')[0]}.zip`;
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
 
@@ -252,7 +252,7 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log('=================================');
     console.log('🏋️  Gym Membership API Server');
     console.log('=================================');

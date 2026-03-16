@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = '/api';
 
 class GymMembershipApp {
   constructor() {
@@ -198,7 +198,7 @@ class GymMembershipApp {
     const avatarPlaceholder = document.querySelector('.avatar-placeholder');
 
     if (customer.image) {
-      avatarImage.src = `http://localhost:3000/images/customers/${customer.image}`;
+      avatarImage.src = `/images/customers/${customer.image}`;
       avatarImage.style.display = 'block';
       avatarPlaceholder.style.display = 'none';
     } else {
@@ -571,7 +571,7 @@ class GymMembershipApp {
     const avatarPlaceholder = document.getElementById('detailsCustomerAvatarPlaceholder');
 
     if (customer.image) {
-      avatarImage.src = `http://localhost:3000/images/customers/${customer.image}`;
+      avatarImage.src = `/images/customers/${customer.image}`;
       avatarImage.style.display = 'block';
       avatarPlaceholder.style.display = 'none';
     } else {
