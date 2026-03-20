@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - FITLAB Fitness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css?v=2.0">
+  <style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: var(--bg-primary, #f4f7f6);
+        margin: 0;
+    }
+    .login-container {
+        background: var(--bg-secondary, #fff);
+        padding: 2.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+    .login-logo {
+        max-width: 120px;
+        margin-bottom: 1.5rem;
+    }
+    .login-title {
+        margin-bottom: 2rem;
+        color: var(--text-primary, #333);
+        font-size: 1.5rem;
+    }
+    .form-group {
+        text-align: left;
+        margin-bottom: 1.5rem;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: var(--text-secondary, #666);
+        font-weight: 500;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color, #ddd);
+        border-radius: 6px;
+        font-family: 'Inter', sans-serif;
+        box-sizing: border-box;
+    }
+    .btn-primary {
+        width: 100%;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 6px;
+        background: var(--primary-color, #007bff);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .btn-primary:hover {
+        background: var(--primary-color-dark, #0056b3);
+    }
+    .error-message {
+        color: #e74c3c;
+        margin-bottom: 1rem;
+        display: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+  </style>
+  <script>
+      // If already authenticated, redirect to index
+      if (localStorage.getItem('isAuthenticated')) {
+          window.location.href = 'index.html';
+      }
+  </script>
+</head>
+
+<body>
+  <div class="login-container">
+    <img src="assets/logo.png" alt="FITLAB Fitness Logo" class="login-logo" onerror="this.src=''; this.alt='FITLAB LOGO'; this.style.fontSize='1.5rem'; this.style.fontWeight='bold';">
+    <h1 class="login-title">Sign In</h1>
+    <div id="errorMessage" class="error-message"></div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" required placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Enter password">
+      </div>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+  </div>
+
+  <script src="js/login.js"></script>
+</body>
+
+</html>

@@ -33,6 +33,10 @@ class Sidebar {
                     <span class="nav-item-icon">⚙️</span>
                     <span class="nav-item-text">Data BackUp</span>
                 </div>
+                <div class="nav-item text-danger" onclick="localStorage.removeItem('isAuthenticated'); window.location.href='login.html'" style="margin-top: auto; color: #dc3545;">
+                    <span class="nav-item-icon">🚪</span>
+                    <span class="nav-item-text">Logout</span>
+                </div>
             </nav>
             <div class="nav-footer">
                 <p>v1.0.0</p>

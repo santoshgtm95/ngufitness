@@ -983,8 +983,24 @@ class GymMembershipApp {
     return div.innerHTML;
   }
 
-  downloadBackup() {
-    window.location.href = `${API_BASE_URL}/backup`;
+  async downloadBackup() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/backup`);
+      if (!response.ok) throw new Error('Backup failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `fitlab_fitness_backup_${new Date().toISOString().split('T')[0]}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading backup:', error);
+      alert('Failed to download backup properly. Please try again.');
+    }
   }
 }
 
