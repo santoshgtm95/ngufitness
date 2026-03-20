@@ -49,6 +49,51 @@
     font-size: 1.2rem;
 }
 
+/* Year Selector */
+.year-selector {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+}
+
+.year-selector.hidden-selector {
+    display: none;
+}
+
+.year-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1.25rem;
+    border: 1.5px solid var(--border-color);
+    background: white;
+    color: var(--text-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.year-btn:hover {
+    border-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+.year-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #000;
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.25);
+}
+
+.year-icon {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
 /* Statistics Grid */
 .stats-grid {
     display: grid;

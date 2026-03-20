@@ -38,6 +38,18 @@
                 </button>
             </div>
 
+            <!-- Year Selector (hidden for yearly period) -->
+            <div class="year-selector" id="yearSelector">
+                <button class="year-btn" data-year="last" id="lastYearBtn">
+                    <span class="year-icon">◀</span>
+                    <span id="lastYearLabel">Last Year</span>
+                </button>
+                <button class="year-btn active" data-year="current" id="currentYearBtn">
+                    <span id="currentYearLabel">This Year</span>
+                    <span class="year-icon">▶</span>
+                </button>
+            </div>
+
             <!-- Statistics Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -71,7 +83,7 @@
 
             <!-- Charts Grid -->
             <div class="charts-grid">
-                <div class="chart-card">
+                <!-- <div class="chart-card">
                     <div class="chart-header">
                         <h3>Membership Registrations</h3>
                         <p class="chart-subtitle">Track new membership sign-ups over time</p>
@@ -89,7 +101,7 @@
                     <div class="chart-container">
                         <canvas id="customerChart"></canvas>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="chart-card">
                     <div class="chart-header">
