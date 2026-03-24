@@ -286,9 +286,9 @@ class ServicesApp {
         }
     }
 
-    downloadBackup() {
-        window.location.href = `${API_URL.replace('/api', '')}/api/backup`;
-    }
+    // downloadBackup() {
+    //     window.location.href = `${API_URL.replace('/api', '')}/api/backup`;
+    // }
 }
 
 // Initialize the app when DOM is loaded

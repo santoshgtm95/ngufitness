@@ -984,9 +984,9 @@ class GymMembershipApp {
     return div.innerHTML;
   }
 
-  downloadBackup() {
-    window.location.href = `${API_BASE_URL}/backup`;
-  }
+  // downloadBackup() {
+  //   window.location.href = `${API_BASE_URL}/backup`;
+  // }
 }
 
 const app = new GymMembershipApp();
