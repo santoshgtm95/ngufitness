@@ -1,9 +1,11 @@
 // Reports Page JavaScript
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 // Global state
 let currentPeriod = 'monthly';
-let currentYear = new Date().getFullYear();   // current year by default
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth() + 1; // 1-12
+let currentDay = ''; // Empty means all days
 let charts = {
     membership: null,
     customer: null,
@@ -12,10 +14,77 @@ let charts = {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
+    populateYearOptions();
+    populateMonthOptions();
+    populateDayOptions();
     initializePeriodSelector();
-    initializeYearSelector();
+    initializeFilterControls();
+    
+    // Set initial values
+    document.getElementById('monthSelect').value = currentMonth;
+    
     loadReports(currentPeriod);
 });
+
+// Populate year dropdown
+function populateYearOptions() {
+    const yearSelect = document.getElementById('yearSelect');
+    if (!yearSelect) return;
+    
+    const thisYear = new Date().getFullYear();
+    const startYear = 2024;
+    
+    yearSelect.innerHTML = '';
+    for (let year = thisYear; year >= startYear; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+    }
+    yearSelect.value = currentYear;
+}
+
+// Populate month dropdown (ensure all months are there)
+function populateMonthOptions() {
+    const monthSelect = document.getElementById('monthSelect');
+    if (!monthSelect) return;
+    
+    const months = [
+        'January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    monthSelect.innerHTML = '<option value="">All Months</option>';
+    months.forEach((month, index) => {
+        const option = document.createElement('option');
+        option.value = index + 1;
+        option.textContent = month;
+        monthSelect.appendChild(option);
+    });
+}
+
+// Populate day dropdown based on year and month
+function populateDayOptions() {
+    const daySelect = document.getElementById('daySelect');
+    if (!daySelect) return;
+
+    const year = currentYear;
+    const month = currentMonth;
+    
+    daySelect.innerHTML = '<option value="">All Days</option>';
+    
+    if (month) {
+        const daysInMonth = new Date(year, month, 0).getDate();
+        for (let i = 1; i <= daysInMonth; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            daySelect.appendChild(option);
+        }
+    }
+    
+    daySelect.value = currentDay;
+}
 
 // Period selector initialization
 function initializePeriodSelector() {
@@ -27,39 +96,69 @@ function initializePeriodSelector() {
             periodButtons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Show/hide year selector (not needed for 'yearly' view)
-            const yearSelector = document.getElementById('yearSelector');
-            if (btn.dataset.period === 'yearly') {
-                yearSelector.classList.add('hidden-selector');
-            } else {
-                yearSelector.classList.remove('hidden-selector');
-            }
-
-            // Load new period data
-            currentPeriod = btn.dataset.period;
+            // Show/hide filter groups based on period
+            const period = btn.dataset.period;
+            currentPeriod = period;
+            
+            updateSelectorVisibility();
             loadReports(currentPeriod);
         });
     });
 }
-// Year selector initialization
-function initializeYearSelector() {
-    const thisYear = new Date().getFullYear();
-    const lastYear = thisYear - 1;
 
-    // Set labels with actual year numbers
-    document.getElementById('lastYearLabel').textContent = `${lastYear}`;
-    document.getElementById('currentYearLabel').textContent = `${thisYear}`;
+// Update visibility of filter selectors
+function updateSelectorVisibility() {
+    const filterControls = document.getElementById('filterControls');
+    const monthFilterGroup = document.getElementById('monthFilterGroup');
+    const dayFilterGroup = document.getElementById('dayFilterGroup');
 
-    const yearButtons = document.querySelectorAll('.year-btn');
-    yearButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            yearButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+    if (currentPeriod === 'yearly') {
+        // Yearly view: only Year selector (for specific year details) or hide all
+        // User said "for yearly report able to select year", but usually yearly report shows everything.
+        // Let's keep Year selector visible.
+        monthFilterGroup.style.display = 'none';
+        dayFilterGroup.style.display = 'none';
+        filterControls.classList.remove('hidden-selector');
+    } else if (currentPeriod === 'monthly') {
+        // Monthly view: Year and Month
+        monthFilterGroup.style.display = 'flex';
+        dayFilterGroup.style.display = 'none';
+        filterControls.classList.remove('hidden-selector');
+    } else if (currentPeriod === 'daily') {
+        // Daily view: Year, Month, and Day
+        monthFilterGroup.style.display = 'flex';
+        dayFilterGroup.style.display = 'flex';
+        filterControls.classList.remove('hidden-selector');
+    }
+}
 
-            currentYear = btn.dataset.year === 'last' ? lastYear : thisYear;
-            loadReports(currentPeriod);
-        });
+// Filter controls initialization
+function initializeFilterControls() {
+    const yearSelect = document.getElementById('yearSelect');
+    const monthSelect = document.getElementById('monthSelect');
+    const daySelect = document.getElementById('daySelect');
+
+    yearSelect.addEventListener('change', () => {
+        currentYear = parseInt(yearSelect.value);
+        populateDayOptions();
+        loadReports(currentPeriod);
     });
+
+    monthSelect.addEventListener('change', () => {
+        currentMonth = monthSelect.value ? parseInt(monthSelect.value) : '';
+        populateDayOptions();
+        loadReports(currentPeriod);
+    });
+
+    daySelect.addEventListener('change', () => {
+        currentDay = daySelect.value;
+        loadReports(currentPeriod);
+    });
+
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    if (downloadPdfBtn) {
+        downloadPdfBtn.addEventListener('click', downloadPDF);
+    }
 }
 
 // Load reports data
@@ -67,18 +166,27 @@ async function loadReports(period) {
     showLoading();
 
     try {
-        let url = `${API_URL}/reports/${period}`;
-        // Pass year param for daily and monthly endpoints
-        if (period === 'daily' || period === 'monthly') {
-            url += `?year=${currentYear}`;
+        let url = `${API_URL}/reports/${period}?year=${currentYear}`;
+        
+        // Pass month param for daily and monthly endpoints
+        if (currentMonth) {
+            url += `&month=${currentMonth}`;
+        }
+        
+        // Pass day param for daily endpoint
+        if (period === 'daily' && currentDay) {
+            url += `&day=${currentDay}`;
         }
 
         const response = await fetch(url);
         const data = await response.json();
 
         if (data.success) {
-            updateStatistics(data.data.totals);
+            // Calculate total revenue from filtered details array
+            const filteredTotalRevenue = (data.data.details || []).reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+            updateStatistics(data.data.totals, filteredTotalRevenue);
             updateCharts(data, period);
+            updateDetailsTable(data.data.details || []);
         } else {
             showError('Failed to load reports');
         }
@@ -90,11 +198,56 @@ async function loadReports(period) {
     }
 }
 
+// Update detailed report table
+function updateDetailsTable(details) {
+    const detailsBody = document.getElementById('detailsBody');
+    if (!detailsBody) return;
+
+    detailsBody.innerHTML = '';
+
+    if (details.length === 0) {
+        const emptyRow = document.createElement('tr');
+        emptyRow.innerHTML = '<td colspan="6" style="text-align: center; padding: 2rem; color: #6b7280;">No transactions found for this period.</td>';
+        detailsBody.appendChild(emptyRow);
+        return;
+    }
+
+    details.forEach(item => {
+        const row = document.createElement('tr');
+        
+        // Format date
+        const date = new Date(item.created_at);
+        const formattedDate = date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+
+        // Determine status tag style
+        const statusClass = `status-tag status-${(item.status || 'paid').toLowerCase().replace(' ', '-')}`;
+
+        const customerNameDisplay = (item.customer_name && item.customer_name !== 'null') ? item.customer_name : '';
+
+        row.innerHTML = `
+            <td>${formattedDate}</td>
+            <td><strong>${customerNameDisplay}</strong></td>
+            <td><span class="type-tag ${item.type.toLowerCase()}">${item.type}</span></td>
+            <td>${item.item}</td>
+            <td class="amount-cell">${formatCurrency(item.amount)}</td>
+            <td><span class="${statusClass}">${item.status || 'Paid'}</span></td>
+        `;
+        detailsBody.appendChild(row);
+    });
+}
+
 // Update statistics cards
-function updateStatistics(totals) {
-    document.getElementById('totalMemberships').textContent = totals.total_memberships || 0;
-    document.getElementById('totalCustomers').textContent = totals.total_customers || 0;
-    document.getElementById('totalRevenue').textContent = formatCurrency(totals.total_revenue || 0);
+function updateStatistics(totals, filteredRevenue) {
+    if (!totals) return;
+    const totalRevenue = document.getElementById('totalRevenue');
+    if (totalRevenue) {
+        const revenueToShow = filteredRevenue !== undefined ? filteredRevenue : (totals.total_revenue || 0);
+        totalRevenue.textContent = formatCurrency(revenueToShow);
+    }
 }
 
 // Update all charts
@@ -105,65 +258,25 @@ function updateCharts(data, period) {
     const membershipRevenue = generateDataPoints(data.data.memberships, labels, period, 'total_payment');
     const serviceRevenue = generateDataPoints(data.data.services || [], labels, period, 'total_payment');
 
-    // Update membership chart
-    updateChart('membershipChart', 'membership', {
-        labels: labels,
-        datasets: [{
-            label: 'New Memberships',
-            data: membershipCounts,
-            borderColor: '#667eea',
-            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointBackgroundColor: '#667eea',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2
-        }]
-    });
-
-    // Update customer chart
-    updateChart('customerChart', 'customer', {
-        labels: labels,
-        datasets: [{
-            label: 'New Customers',
-            data: customerCounts,
-            borderColor: '#f5576c',
-            backgroundColor: 'rgba(245, 87, 108, 0.1)',
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointBackgroundColor: '#f5576c',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2
-        }]
-    });
-
-    // Update revenue chart with stacked bars
+    // Update revenue chart with two lines
     updateChart('revenueChart', 'revenue', {
         labels: labels,
         datasets: [
             {
                 label: 'Membership Revenue',
                 data: membershipRevenue,
-                backgroundColor: 'rgba(79, 172, 254, 0.8)',
-                borderColor: '#4facfe',
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.8)',
                 borderWidth: 2,
-                borderRadius: 8,
-                hoverBackgroundColor: 'rgba(79, 172, 254, 1)'
+                borderRadius: 4
             },
             {
                 label: 'Service Revenue',
                 data: serviceRevenue,
-                backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                borderColor: '#667eea',
+                borderColor: '#7c3aed',
+                backgroundColor: 'rgba(124, 58, 237, 0.8)',
                 borderWidth: 2,
-                borderRadius: 8,
-                hoverBackgroundColor: 'rgba(102, 126, 234, 1)'
+                borderRadius: 4
             }
         ]
     }, 'bar');
@@ -183,8 +296,12 @@ function generateLabels(data, period) {
         }
         return labels;
     } else if (period === 'monthly') {
-        // All 12 months
-        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        // All 12 months or specific month
+        const allMonthsLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        if (currentMonth) {
+            return [allMonthsLabels[currentMonth - 1]];
+        }
+        return allMonthsLabels;
     } else {
         // Yearly - extract unique years from data
         const years = new Set();
@@ -232,15 +349,16 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
     }
 
     // Create new chart
-    charts[chartKey] = new Chart(ctx, {
+    const config = {
         type: type,
         data: data,
         options: {
+            indexAxis: 'x', // All charts horizontal for consistency or switch to traditional x
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: chartKey === 'revenue', // Show legend only for revenue chart
+                    display: true, // Always show legend for revenue chart
                     position: 'top',
                     labels: {
                         boxWidth: 12,
@@ -280,7 +398,6 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
             scales: {
                 y: {
                     beginAtZero: true,
-                    stacked: chartKey === 'revenue', // Enable stacking for revenue chart
                     ticks: {
                         callback: function (value) {
                             if (chartKey === 'revenue') {
@@ -299,7 +416,6 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
                     }
                 },
                 x: {
-                    stacked: chartKey === 'revenue', // Enable stacking for revenue chart
                     ticks: {
                         font: {
                             size: 11
@@ -315,7 +431,24 @@ function updateChart(canvasId, chartKey, data, type = 'line') {
                 }
             }
         }
-    });
+    };
+
+    // Add gradients for revenue chart
+    if (chartKey === 'revenue' && data.datasets) {
+        data.datasets.forEach((dataset, index) => {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            if (index === 0) { // Membership
+                gradient.addColorStop(0, 'rgba(79, 70, 229, 0.8)');
+                gradient.addColorStop(1, 'rgba(79, 70, 229, 0.4)');
+            } else { // Service
+                gradient.addColorStop(0, 'rgba(124, 58, 237, 0.8)');
+                gradient.addColorStop(1, 'rgba(124, 58, 237, 0.4)');
+            }
+            dataset.backgroundColor = gradient;
+        });
+    }
+
+    charts[chartKey] = new Chart(ctx, config);
 }
 
 // Utility functions
@@ -338,4 +471,49 @@ function hideLoading() {
 
 function showError(message) {
     alert(message);
+}
+
+// Download Detailed Report as PDF
+function downloadPDF() {
+    if (typeof window.jspdf === 'undefined') {
+        alert('PDF functionality is still loading. Please try again in a moment.');
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(18);
+    doc.setTextColor(31, 41, 55);
+    doc.text('Detailed Report - NGU Fitness', 14, 20);
+    
+    // Subheader
+    doc.setFontSize(11);
+    doc.setTextColor(107, 114, 128);
+    const periodText = currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1);
+    doc.text(`Period: ${periodText} | Year: ${currentYear}${currentMonth ? ' | Month: ' + currentMonth : ''}`, 14, 28);
+    
+    // Generate Table
+    doc.autoTable({
+        html: '#detailsTable',
+        startY: 35,
+        theme: 'striped',
+        headStyles: { 
+            fillColor: [79, 70, 229],
+            textColor: 255 
+        },
+        styles: { 
+            font: 'helvetica',
+            fontSize: 9,
+            cellPadding: 4
+        },
+        alternateRowStyles: {
+            fillColor: [249, 250, 251]
+        }
+    });
+    
+    // Save PDF
+    const timestamp = new Date().toISOString().split('T')[0];
+    doc.save(`NGU_Fitness_${periodText}_Report_${timestamp}.pdf`);
 }

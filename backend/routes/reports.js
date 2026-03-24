@@ -8,12 +8,12 @@ const db = require('../config/database');
  */
 router.get('/daily', (req, res) => {
     try {
-        const { year, month } = req.query;
+        const { year, month, day } = req.query;
         const currentDate = new Date();
         const targetYear = year || currentDate.getFullYear();
         const targetMonth = month || (currentDate.getMonth() + 1);
 
-        // Get daily membership registrations
+        // Get daily membership registrations (for the chart - always a full month)
         const membershipData = db.prepare(`
             SELECT 
                 DATE(created_at) as date,
@@ -73,16 +73,75 @@ router.get('/daily', (req, res) => {
             targetYear.toString(), targetMonth.toString().padStart(2, '0')
         );
 
+        // Get detailed transactions for the month (optionally filtered by day)
+        let detailsQuery = `
+            SELECT 
+                m.id, 
+                m.created_at, 
+                m.payment as amount, 
+                m.package_type as item, 
+                m.payment_status as status,
+                'Membership' as type,
+                c.name as customer_name
+            FROM memberships m
+            LEFT JOIN customers c ON m.customer_id = c.id
+            WHERE strftime('%Y', m.created_at) = ? 
+            AND strftime('%m', m.created_at) = ?
+        `;
+        
+        let detailsParams = [targetYear.toString(), targetMonth.toString().padStart(2, '0')];
+        
+        if (day) {
+            detailsQuery += ` AND strftime('%d', m.created_at) = ? `;
+            detailsParams.push(day.toString().padStart(2, '0'));
+        }
+
+        detailsQuery += `
+            UNION ALL
+            SELECT 
+                s.id, 
+                s.created_at, 
+                s.price as amount, 
+                s.service_name as item, 
+                'paid' as status,
+                'Service' as type,
+                c.name as customer_name
+            FROM services s
+            LEFT JOIN customers c ON s.customer_id = c.id
+            WHERE strftime('%Y', s.created_at) = ? 
+            AND strftime('%m', s.created_at) = ?
+        `;
+        
+        detailsParams.push(targetYear.toString(), targetMonth.toString().padStart(2, '0'));
+        
+        if (day) {
+            detailsQuery += ` AND strftime('%d', s.created_at) = ? `;
+            detailsParams.push(day.toString().padStart(2, '0'));
+        }
+
+        detailsQuery += ` ORDER BY 2 DESC `;
+        
+        console.log('--- DAILY REPORT DEBUG ---');
+        console.log('Query:', detailsQuery);
+        console.log('Params:', detailsParams);
+
+        const details = db.prepare(detailsQuery).all(...detailsParams);
+
+        console.log('Results count:', details.length);
+        console.log('-------------------------');
+
         res.json({
             success: true,
             period: 'daily',
             year: targetYear,
             month: targetMonth,
+            day: day || null,
             data: {
                 memberships: membershipData,
                 customers: customerData,
                 services: serviceData,
-                totals: totals
+                totals: totals,
+                details: details
             }
         });
     } catch (error) {
@@ -100,7 +159,7 @@ router.get('/daily', (req, res) => {
  */
 router.get('/monthly', (req, res) => {
     try {
-        const { year } = req.query;
+        const { year, month } = req.query;
         const targetYear = year || new Date().getFullYear();
 
         // Get monthly membership registrations
@@ -151,15 +210,77 @@ router.get('/monthly', (req, res) => {
                  WHERE strftime('%Y', created_at) = ?) as total_revenue
         `).get(targetYear.toString(), targetYear.toString(), targetYear.toString(), targetYear.toString());
 
+        // Get detailed transactions for the year (optionally filtered by month)
+        let detailsQuery = `
+            SELECT 
+                m.id, 
+                m.created_at, 
+                m.payment as amount, 
+                m.package_type as item, 
+                m.payment_status as status,
+                'Membership' as type,
+                c.name as customer_name
+            FROM memberships m
+            LEFT JOIN customers c ON m.customer_id = c.id
+            WHERE strftime('%Y', m.created_at) = ?
+        `;
+        
+        let detailsParams = [targetYear.toString()];
+        
+        if (month) {
+            detailsQuery += ` AND strftime('%m', m.created_at) = ? `;
+            detailsParams.push(month.toString().padStart(2, '0'));
+        }
+
+        detailsQuery += `
+            UNION ALL
+            SELECT 
+                s.id, 
+                s.created_at, 
+                s.price as amount, 
+                s.service_name as item, 
+                'paid' as status,
+                'Service' as type,
+                c.name as customer_name
+            FROM services s
+            LEFT JOIN customers c ON s.customer_id = c.id
+            WHERE strftime('%Y', s.created_at) = ?
+        `;
+        
+        detailsParams.push(targetYear.toString());
+        
+        if (month) {
+            detailsQuery += ` AND strftime('%m', s.created_at) = ? `;
+            detailsParams.push(month.toString().padStart(2, '0'));
+        }
+
+        detailsQuery += ` ORDER BY 2 DESC `;
+        
+        console.log('--- MONTHLY REPORT DEBUG ---');
+        console.log('Query:', detailsQuery);
+        console.log('Params:', detailsParams);
+
+        const details = db.prepare(detailsQuery).all(...detailsParams);
+
+        console.log('Results count:', details.length);
+        console.log('---------------------------');
+
         res.json({
             success: true,
             period: 'monthly',
             year: targetYear,
+            month: month || null,
             data: {
                 memberships: membershipData,
                 customers: customerData,
                 services: serviceData,
-                totals: totals
+                totals: totals,
+                details: details || [],
+                _debug: {
+                    query: detailsQuery,
+                    params: detailsParams,
+                    count: details ? details.length : 0
+                }
             }
         });
     } catch (error) {
@@ -177,6 +298,8 @@ router.get('/monthly', (req, res) => {
  */
 router.get('/yearly', (req, res) => {
     try {
+        const { year } = req.query;
+        
         // Get yearly membership registrations
         const membershipData = db.prepare(`
             SELECT 
@@ -218,14 +341,60 @@ router.get('/yearly', (req, res) => {
                 (SELECT COALESCE(SUM(price), 0) FROM services) as total_revenue
         `).get();
 
+        // Get detailed transactions (optionally filtered by year)
+        let detailsQuery = `
+            SELECT 
+                m.id, 
+                m.created_at, 
+                m.payment as amount, 
+                m.package_type as item, 
+                m.payment_status as status,
+                'Membership' as type,
+                c.name as customer_name
+            FROM memberships m
+            LEFT JOIN customers c ON m.customer_id = c.id
+        `;
+        
+        let detailsParams = [];
+        
+        if (year) {
+            detailsQuery += ` WHERE strftime('%Y', m.created_at) = ? `;
+            detailsParams.push(year.toString());
+        }
+
+        detailsQuery += `
+            UNION ALL
+            SELECT 
+                s.id, 
+                s.created_at, 
+                s.price as amount, 
+                s.service_name as item, 
+                'paid' as status,
+                'Service' as type,
+                c.name as customer_name
+            FROM services s
+            LEFT JOIN customers c ON s.customer_id = c.id
+        `;
+        
+        if (year) {
+            detailsQuery += ` WHERE strftime('%Y', s.created_at) = ? `;
+            detailsParams.push(year.toString());
+        }
+
+        detailsQuery += ` ORDER BY 2 DESC `;
+
+        const details = db.prepare(detailsQuery).all(...detailsParams);
+
         res.json({
             success: true,
             period: 'yearly',
+            year: year || null,
             data: {
                 memberships: membershipData,
                 customers: customerData,
                 services: serviceData,
-                totals: totals
+                totals: totals,
+                details: details
             }
         });
     } catch (error) {

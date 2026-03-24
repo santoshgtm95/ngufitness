@@ -48,7 +48,14 @@ module.exports.upload = upload;
 
 // Middleware
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl) or null origin (file://)
+        if (!origin || origin === 'null' || origin === 'http://localhost:8080' || origin.startsWith('http://localhost:')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(bodyParser.json());

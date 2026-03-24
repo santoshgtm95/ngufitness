@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/reports.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 
 <body>
@@ -22,54 +24,61 @@
 
         <!-- Main Content -->
         <main class="main-content reports-main">
-            <!-- Period Selector -->
-            <div class="period-selector">
-                <button class="period-btn" data-period="daily">
-                    <span class="period-icon">📅</span>
-                    <span>Daily</span>
-                </button>
-                <button class="period-btn active" data-period="monthly">
-                    <span class="period-icon">📆</span>
-                    <span>Monthly</span>
-                </button>
-                <button class="period-btn" data-period="yearly">
-                    <span class="period-icon">🗓️</span>
-                    <span>Yearly</span>
-                </button>
-            </div>
+            <!-- Header Controls Wrapper -->
+            <div class="reports-controls-wrapper">
+                <!-- Period Selector -->
+                <div class="period-selector">
+                    <button class="period-btn" data-period="daily">
+                        <span class="period-icon">📅</span>
+                        <span>Daily</span>
+                    </button>
+                    <button class="period-btn active" data-period="monthly">
+                        <span class="period-icon">📆</span>
+                        <span>Monthly</span>
+                    </button>
+                    <button class="period-btn" data-period="yearly">
+                        <span class="period-icon">🗓️</span>
+                        <span>Yearly</span>
+                    </button>
+                </div>
 
-            <!-- Year Selector (hidden for yearly period) -->
-            <div class="year-selector" id="yearSelector">
-                <button class="year-btn" data-year="last" id="lastYearBtn">
-                    <span class="year-icon">◀</span>
-                    <span id="lastYearLabel">Last Year</span>
-                </button>
-                <button class="year-btn active" data-year="current" id="currentYearBtn">
-                    <span id="currentYearLabel">This Year</span>
-                    <span class="year-icon">▶</span>
-                </button>
+                <!-- Filter Controls (Year and Month) -->
+                <div class="filter-controls" id="filterControls">
+                    <div class="filter-group">
+                        <label for="yearSelect">Year</label>
+                        <select id="yearSelect" class="filter-select">
+                            <!-- Options will be populated by reports.js -->
+                        </select>
+                    </div>
+                    <div class="filter-group" id="monthFilterGroup">
+                        <label for="monthSelect">Month</label>
+                        <select id="monthSelect" class="filter-select">
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" id="dayFilterGroup" style="display: none;">
+                        <label for="daySelect">Day</label>
+                        <select id="daySelect" class="filter-select">
+                            <option value="">All Days</option>
+                            <!-- Options will be populated by reports.js -->
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <!-- Statistics Cards -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                        🎫
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="totalMemberships">0</h3>
-                        <p>Total Memberships</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                        👥
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="totalCustomers">0</h3>
-                        <p>Total Customers</p>
-                    </div>
-                </div>
+            <div class="stats-grid single-stat">
                 <div class="stat-card">
                     <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                         💰
@@ -81,31 +90,44 @@
                 </div>
             </div>
 
+            <!-- Detailed Report Section -->
+            <div class="details-section">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h3>Detailed Report</h3>
+                        <p class="section-subtitle">Individual transactions for the selected period</p>
+                    </div>
+                    <button id="downloadPdfBtn" class="download-btn">
+                        <span style="font-size: 1.1rem;">📄</span> Download PDF
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="details-table" id="detailsTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Type</th>
+                                <th>Item / Package</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailsBody">
+                            <!-- Data will be populated by reports.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+
+
             <!-- Charts Grid -->
             <div class="charts-grid">
-                <!-- <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Membership Registrations</h3>
-                        <p class="chart-subtitle">Track new membership sign-ups over time</p>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="membershipChart"></canvas>
-                    </div>
-                </div>
-
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h3>Customer Growth</h3>
-                        <p class="chart-subtitle">Monitor new customer acquisitions</p>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="customerChart"></canvas>
-                    </div>
-                </div> -->
-
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Payment Income</h3>
+                        <h3 id="revenueChartTitle">Payment Income</h3>
                         <p class="chart-subtitle">Analyze revenue trends and patterns</p>
                     </div>
                     <div class="chart-container">
@@ -113,7 +135,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Loading Overlay -->
             <div id="loadingOverlay" class="loading-overlay">
                 <div class="loading-spinner"></div>
