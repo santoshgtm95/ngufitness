@@ -508,7 +508,12 @@ function downloadPDF() {
     doc.setFontSize(11);
     doc.setTextColor(107, 114, 128);
     const periodText = currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1);
-    doc.text(`Period: ${periodText} | Year: ${currentYear}${currentMonth ? ' | Month: ' + currentMonth : ''}`, 14, 28);
+    
+    let subheaderText = `Period: ${periodText} | Year: ${currentYear}`;
+    if (currentMonth) subheaderText += ` | Month: ${currentMonth}`;
+    if (currentPeriod === 'daily' && currentDay) subheaderText += ` | Day: ${currentDay}`;
+    
+    doc.text(subheaderText, 14, 28);
     
     // Generate Table
     doc.autoTable({
