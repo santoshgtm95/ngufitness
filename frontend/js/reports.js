@@ -201,9 +201,11 @@ async function loadReports(period) {
 // Update detailed report table
 function updateDetailsTable(details) {
     const detailsBody = document.getElementById('detailsBody');
+    const detailsFoot = document.getElementById('detailsFoot');
     if (!detailsBody) return;
 
     detailsBody.innerHTML = '';
+    if (detailsFoot) detailsFoot.innerHTML = '';
 
     if (details.length === 0) {
         const emptyRow = document.createElement('tr');
@@ -212,7 +214,11 @@ function updateDetailsTable(details) {
         return;
     }
 
+    let totalAmount = 0;
+
     details.forEach(item => {
+        totalAmount += (parseFloat(item.amount) || 0);
+
         const row = document.createElement('tr');
         
         // Format date
@@ -238,6 +244,16 @@ function updateDetailsTable(details) {
         `;
         detailsBody.appendChild(row);
     });
+
+    if (detailsFoot) {
+        const footRow = document.createElement('tr');
+        footRow.innerHTML = `
+            <th colspan="4" style="text-align: right; padding-right: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; color: var(--text-secondary);">Total Revenue:</th>
+            <th class="amount-cell" style="font-size: 1.05rem; color: var(--text-primary);">${formatCurrency(totalAmount)}</th>
+            <th></th>
+        `;
+        detailsFoot.appendChild(footRow);
+    }
 }
 
 // Update statistics cards

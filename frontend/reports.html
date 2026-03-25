@@ -75,24 +75,14 @@
                         </select>
                     </div>
                 </div>
-            </div>
 
-            <!-- Statistics Cards -->
-            <div class="stats-grid single-stat">
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                        💰
-                    </div>
-                    <div class="stat-content">
-                        <h3 id="totalRevenue">0฿</h3>
-                        <p>Total Revenue</p>
-                    </div>
-                </div>
+
             </div>
 
             <!-- Detailed Report Section -->
             <div class="details-section">
-                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div class="section-header"
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h3>Detailed Report</h3>
                         <p class="section-subtitle">Individual transactions for the selected period</p>
@@ -116,6 +106,9 @@
                         <tbody id="detailsBody">
                             <!-- Data will be populated by reports.js -->
                         </tbody>
+                        <tfoot id="detailsFoot">
+                            <!-- Footer will be populated by reports.js -->
+                        </tfoot>
                     </table>
                 </div>
             </div>

@@ -177,6 +177,31 @@
     font-weight: 500;
 }
 
+/* Inline Stat Card Modifier */
+.stat-card.total-revenue-inline {
+    padding: 0.5rem 1.25rem;
+    margin-bottom: 0;
+    gap: 1rem;
+    width: fit-content;
+    height: auto;
+    margin-left: auto; /* Pushes it to the right if there's space */
+}
+
+.stat-card.total-revenue-inline .stat-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+    border-radius: 12px;
+}
+
+.stat-card.total-revenue-inline .stat-content h3 {
+    font-size: 1.25rem;
+}
+
+.stat-card.total-revenue-inline .stat-content p {
+    font-size: 0.75rem;
+}
+
 /* Charts Grid */
 .charts-grid {
     display: grid;
@@ -311,6 +336,12 @@
     font-size: 0.75rem;
     letter-spacing: 0.05em;
     border-bottom: 2px solid var(--border-color);
+}
+
+.details-table tfoot th {
+    border-bottom: none;
+    border-top: 2px solid var(--border-color);
+    background: #f9fafb;
 }
 
 .details-table td {

@@ -408,9 +408,13 @@ class GymMembershipApp {
         baseDays = 1;
         expireDate.setDate(expireDate.getDate() + 1);
         break;
-      case '2weeks':
-        baseDays = 14;
-        expireDate.setDate(expireDate.getDate() + 14);
+      case '3days':
+        baseDays = 3;
+        expireDate.setDate(expireDate.getDate() + 3);
+        break;
+      case '1week':
+        baseDays = 7;
+        expireDate.setDate(expireDate.getDate() + 7);
         break;
       case '1month':
         baseDays = 30;
@@ -425,9 +429,12 @@ class GymMembershipApp {
         expireDate.setMonth(expireDate.getMonth() + 6);
         break;
       case '12months':
-      case '12months_couple':
         baseDays = 365;
         expireDate.setFullYear(expireDate.getFullYear() + 1);
+        break;
+      case '24months':
+        baseDays = 730;
+        expireDate.setFullYear(expireDate.getFullYear() + 2);
         break;
     }
 
@@ -471,12 +478,13 @@ class GymMembershipApp {
 
     const prices = {
       '1day': 200,
-      '2weeks': 1000,
-      '1month': 2500,
-      '3months': 6000,
-      '6months': 8500,
-      '12months': 15000,
-      '12months_couple': 25000
+      '3days': 500,
+      '1week': 1000,
+      '1month': 2000,
+      '3months': 4500,
+      '6months': 6000,
+      '12months': 12000,
+      '24months': 20000
     };
 
     if (prices[packageType]) {
@@ -962,13 +970,14 @@ class GymMembershipApp {
 
   getPackageLabel(packageType) {
     const labels = {
-      '1day': '1 Day',
-      '2weeks': '2 Weeks',
+      '1day': '1 Day Pass',
+      '3days': '3 Day Pass',
+      '1week': '1 Week Pass',
       '1month': '1 Month',
       '3months': '3 Months',
       '6months': '6 Months',
       '12months': '12 Months',
-      '12months_couple': '12 Months Couple'
+      '24months': '24 Months'
     };
     return labels[packageType] || packageType;
   }
