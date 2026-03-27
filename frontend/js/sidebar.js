@@ -25,10 +25,6 @@ class Sidebar {
                     <span class="nav-item-icon">📈</span>
                     <span class="nav-item-text">Reports</span>
                 </div>
-                <div class="nav-item" onclick="syncApp.showSyncSettingsModal()">
-                    <span class="nav-item-icon">🔄</span>
-                    <span class="nav-item-text">Sync Settings</span>
-                </div>
                 <div class="nav-item" onclick="window.BackupManager.downloadBackup()">
                     <span class="nav-item-icon">⚙️</span>
                     <span class="nav-item-text">Export BackUp</span>
@@ -61,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.BackupManager = {
-    downloadBackup: async function() {
+    downloadBackup: async function () {
         try {
             const API_BASE_URL = '/api';
             const response = await fetch(`${API_BASE_URL}/backup`);
@@ -81,7 +77,7 @@ window.BackupManager = {
             alert('Failed to download backup properly. Please try again.');
         }
     },
-    triggerBackupImport: function() {
+    triggerBackupImport: function () {
         let fileInput = document.getElementById('backupFileInput');
         if (!fileInput) {
             fileInput = document.createElement('input');
@@ -94,10 +90,10 @@ window.BackupManager = {
         }
         fileInput.click();
     },
-    importBackup: async function(event) {
+    importBackup: async function (event) {
         const file = event.target.files[0];
         if (!file) return;
-        
+
         if (!confirm('WARNING: Importing a backup will REPLACE all current data. Are you sure you want to continue?')) {
             event.target.value = '';
             return;
