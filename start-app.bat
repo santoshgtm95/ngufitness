@@ -7,7 +7,7 @@ echo Starting servers...
 echo.
 
 REM Start backend server
-start "Backend Server - Port 3000" cmd /k "cd backend && npm start"
+start "Backend Server - Port 3000" cmd /k "cd C:\Users\A\Documents\NGU Fitness\ngufitness\backend && npm start"
 
 echo.
 echo ========================================
