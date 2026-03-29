@@ -207,52 +207,68 @@ function updateDetailsTable(details) {
     detailsBody.innerHTML = '';
     if (detailsFoot) detailsFoot.innerHTML = '';
 
-    if (details.length === 0) {
+    // Separate membership and service rows
+    const membershipRows = details.filter(item => (item.type || '').toLowerCase() !== 'service');
+    const serviceRows = details.filter(item => (item.type || '').toLowerCase() === 'service');
+
+    const totalMembershipRevenue = membershipRows.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    const totalServiceRevenue = serviceRows.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
+    const totalRevenue = totalMembershipRevenue + totalServiceRevenue;
+
+    if (membershipRows.length === 0) {
         const emptyRow = document.createElement('tr');
-        emptyRow.innerHTML = '<td colspan="6" style="text-align: center; padding: 2rem; color: #6b7280;">No transactions found for this period.</td>';
+        emptyRow.innerHTML = '<td colspan="6" style="text-align: center; padding: 2rem; color: #6b7280;">No membership transactions found for this period.</td>';
         detailsBody.appendChild(emptyRow);
-        return;
+    } else {
+        membershipRows.forEach(item => {
+            const row = document.createElement('tr');
+
+            // Format date
+            const date = new Date(item.created_at);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            // Determine status tag style
+            const statusClass = `status-tag status-${(item.status || 'paid').toLowerCase().replace(' ', '-')}`;
+
+            const customerNameDisplay = (item.customer_name && item.customer_name !== 'null') ? item.customer_name : '';
+
+            row.innerHTML = `
+                <td>${formattedDate}</td>
+                <td><strong>${customerNameDisplay}</strong></td>
+                <td><span class="type-tag ${item.type.toLowerCase()}">${item.type}</span></td>
+                <td>${item.item}</td>
+                <td class="amount-cell">${formatCurrency(item.amount)}</td>
+                <td><span class="${statusClass}">${item.status || 'Paid'}</span></td>
+            `;
+            detailsBody.appendChild(row);
+        });
     }
 
-    let totalAmount = 0;
-
-    details.forEach(item => {
-        totalAmount += (parseFloat(item.amount) || 0);
-
-        const row = document.createElement('tr');
-        
-        // Format date
-        const date = new Date(item.created_at);
-        const formattedDate = date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-
-        // Determine status tag style
-        const statusClass = `status-tag status-${(item.status || 'paid').toLowerCase().replace(' ', '-')}`;
-
-        const customerNameDisplay = (item.customer_name && item.customer_name !== 'null') ? item.customer_name : '';
-
-        row.innerHTML = `
-            <td>${formattedDate}</td>
-            <td><strong>${customerNameDisplay}</strong></td>
-            <td><span class="type-tag ${item.type.toLowerCase()}">${item.type}</span></td>
-            <td>${item.item}</td>
-            <td class="amount-cell">${formatCurrency(item.amount)}</td>
-            <td><span class="${statusClass}">${item.status || 'Paid'}</span></td>
-        `;
-        detailsBody.appendChild(row);
-    });
-
     if (detailsFoot) {
-        const footRow = document.createElement('tr');
-        footRow.innerHTML = `
-            <th colspan="4" style="text-align: right; padding-right: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; color: var(--text-secondary);">Total Revenue:</th>
-            <th class="amount-cell" style="font-size: 1.05rem; color: var(--text-primary);">${formatCurrency(totalAmount)}</th>
-            <th></th>
+        const footerStyle = 'text-align: right; padding-right: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem;';
+        const amountStyle = 'font-size: 1rem;';
+
+        detailsFoot.innerHTML = `
+            <tr>
+                <th colspan="4" style="${footerStyle} color: var(--text-secondary);">Total Membership Revenue:</th>
+                <th class="amount-cell" style="${amountStyle} color: #4f46e5;">${formatCurrency(totalMembershipRevenue)}</th>
+                <th></th>
+            </tr>
+            <tr>
+                <th colspan="4" style="${footerStyle} color: var(--text-secondary);">Total Service Revenue:</th>
+                <th class="amount-cell" style="${amountStyle} color: #7c3aed;">${formatCurrency(totalServiceRevenue)}</th>
+                <th></th>
+            </tr>
+            <tr style="border-top: 2px solid var(--border-color, #e5e7eb);">
+                <th colspan="4" style="${footerStyle} color: var(--text-primary); font-size: 0.85rem;">Total Revenue:</th>
+                <th class="amount-cell" style="font-size: 1.1rem; color: var(--text-primary); font-weight: 700;">${formatCurrency(totalRevenue)}</th>
+                <th></th>
+            </tr>
         `;
-        detailsFoot.appendChild(footRow);
     }
 }
 

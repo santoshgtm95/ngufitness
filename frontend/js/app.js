@@ -317,14 +317,18 @@ class GymMembershipApp {
       document.getElementById('membershipCustomerSelect').disabled = true;
 
       const customer = this.customers.find(c => c.id === customerId);
-      // For renewal, we default to today's date, but maybe keep the package type as a suggestion
+      // For renewal, pre-fill previous membership data
       if (customer && customer.membership) {
         document.getElementById('membershipPackage').value = customer.membership.packageType;
-        document.getElementById('membershipPayment').value = customer.membership.payment || 0; // Show previous payment as reference
-        document.getElementById('membershipExtraDays').value = customer.membership.extra_days || 0; // Pre-fill extra days from previous membership
+        document.getElementById('membershipPayment').value = customer.membership.payment || 0;
+        document.getElementById('membershipExtraDays').value = customer.membership.extra_days || 0;
       }
       this.setDefaultDate(); // Always set start date to today for new/renew
       this.calculateExpirationDate();
+      // Restore the DB expiry date after auto-calculation
+      if (customer && customer.membership && customer.membership.expireDate) {
+        document.getElementById('membershipExpireDate').value = customer.membership.expireDate;
+      }
     } else {
       document.getElementById('membershipCustomerId').value = '';
       document.getElementById('membershipCustomerSelect').disabled = false;
@@ -354,14 +358,14 @@ class GymMembershipApp {
     // Populate with existing membership data
     document.getElementById('membershipStartDate').value = customer.membership.startDate;
     document.getElementById('membershipPackage').value = customer.membership.packageType;
-    document.getElementById('membershipExpireDate').value = customer.membership.expireDate;
     document.getElementById('membershipPayment').value = customer.membership.payment || 0;
     document.getElementById('membershipPaymentStatus').value = customer.membership.payment_status || 'paid';
     document.getElementById('membershipDescription').value = customer.membership.description || '';
     document.getElementById('membershipExtraDays').value = customer.membership.extra_days || 0;
 
-    // Trigger calculation to show duration
+    // Trigger calculation to update duration display, then restore the actual DB expiry date
     this.calculateExpirationDate();
+    document.getElementById('membershipExpireDate').value = customer.membership.expireDate;
 
     document.getElementById('membershipModal').classList.add('active');
   }
