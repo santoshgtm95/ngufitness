@@ -397,6 +397,7 @@ app.post('/api/backup/import', uploadZip.single('backupZip'), (req, res) => {
 
                 if (line.startsWith('=')) {
                     currentService = null;
+                    mode = 'service_section'; // Reset so next SERVICE # line is detected
                 }
             }
         }
