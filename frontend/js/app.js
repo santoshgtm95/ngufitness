@@ -324,11 +324,7 @@ class GymMembershipApp {
         document.getElementById('membershipExtraDays').value = customer.membership.extra_days || 0;
       }
       this.setDefaultDate(); // Always set start date to today for new/renew
-      this.calculateExpirationDate();
-      // Restore the DB expiry date after auto-calculation
-      if (customer && customer.membership && customer.membership.expireDate) {
-        document.getElementById('membershipExpireDate').value = customer.membership.expireDate;
-      }
+      this.calculateExpirationDate(); // Calculate fresh expiry based on today + package
     } else {
       document.getElementById('membershipCustomerId').value = '';
       document.getElementById('membershipCustomerSelect').disabled = false;
